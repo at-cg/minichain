@@ -5,6 +5,15 @@
 #include "mgpriv.h"
 #include "khashl.h"
 #include "sys.h"
+#include "graphUtils.h"
+#include <iostream>
+
+graphUtils *graphOp;
+
+void get_Op(graphUtils *graph_Op)
+{
+	graphOp = graph_Op;
+}
 
 struct mg_tbuf_s {
 	void *km;
@@ -374,6 +383,46 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 					i == 0? 0 : ((int32_t)a[i].y - (int32_t)a[i-1].y) - ((int32_t)a[i].x - (int32_t)a[i-1].x));
 	}
 
+	/*
+	i = anchor on read
+	a[i].x>>32  = node_id (with 1 vertex is repsresented with both strands)
+	(int32_t)(a[i].x) = position of end of minimizer on a node "a[i].x>>32" of graph
+	(int32_t)(a[i].y) = position of end of anchor on a read
+	(int32_t)(a[i].y>>32&0xff) =  flag on query (minimizer length or length of Anchor)
+	*/
+
+	// Integrate Chain
+
+
+	mg128_t *anchor_;
+	anchor_ = a;
+	std::vector<mg128_t> anchor;
+	anchor.resize(n_a);
+	for (size_t i = 0; i < n_a; i++)
+	{
+		anchor[i] = anchor_[i];
+	}
+
+	/* Chaining */
+	std::chrono::time_point<std::chrono::system_clock> start, end;
+	start = std::chrono::system_clock::now(); // start time
+	graphOp->seq_name = qname;
+	std::vector<mg128_t> best = graphOp->Chaining(anchor ,graphOp->scale_factor);
+	end = std::chrono::system_clock::now(); //end time
+	std::chrono::duration<double> elapsed_seconds = end - start;
+	elapsed_seconds = end - start;
+	// std::cerr << " Chaining Time : " << elapsed_seconds.count() << " (s) "<< std::endl;
+	kfree(b->km, a);
+	KMALLOC(b->km, a, best.size());
+	for (size_t i = 0; i < best.size(); i++)
+	{
+		a[i] = best[i];
+	}
+	n_a = best.size();
+
+	/* clear anchors */
+	anchor.clear();
+
 	// set max chaining gap on the query and the reference sequence
 	if (is_sr)
 		max_chain_gap_qry = qlen_sum > opt->max_gap? qlen_sum : opt->max_gap;
@@ -396,10 +445,10 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 	} else {
 		if (opt->flag & MG_M_RMQ) {
 			a = mg_lchain_rmq(opt->max_gap, opt->max_gap_pre, opt->bw, opt->max_lc_skip, opt->rmq_size_cap, opt->min_lc_cnt, opt->min_lc_score,
-							  chn_pen_gap, chn_pen_skip, n_a, a, &n_lc, &u, b->km);
+							  opt->l_chn_pen_gap, opt->l_chn_pen_skip, n_a, a, &n_lc, &u, b->km);
 		} else {
 			a = mg_lchain_dp(max_chain_gap_ref, max_chain_gap_qry, opt->bw, opt->max_lc_skip, opt->max_lc_iter, opt->min_lc_cnt, opt->min_lc_score,
-							 chn_pen_gap, chn_pen_skip, is_splice, n_segs, n_a, a, &n_lc, &u, b->km);
+							 opt->l_chn_pen_gap, opt->l_chn_pen_skip, is_splice, n_segs, n_a, a, &n_lc, &u, b->km);
 		}
 	}
 	if (mg_dbg_flag & MG_DBG_QNAME) t = print_time(t, 1, qname);
@@ -412,7 +461,7 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 			kfree(b->km, u);
 			radix_sort_128x(a, a + n_a);
 			a = mg_lchain_rmq(opt->max_gap, opt->max_gap_pre, opt->bw_long, opt->max_lc_skip, opt->rmq_size_cap, opt->min_lc_cnt, opt->min_lc_score,
-							  chn_pen_gap, chn_pen_skip, n_a, a, &n_lc, &u, b->km);
+							  opt->l_chn_pen_gap, opt->l_chn_pen_skip, n_a, a, &n_lc, &u, b->km);
 		}
 	}
 

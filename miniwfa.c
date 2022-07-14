@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "mgpriv.h"
 #include "miniwfa.h"
 #include "kalloc.h"
 

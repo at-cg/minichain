@@ -27,8 +27,9 @@ void mg_mapopt_init(mg_mapopt_t *mo)
 	mo->rmq_rescue_ratio = 0.1f;
 	mo->mini_batch_size = 500000000;
 	mo->div = 0.1f;
+	mo->l_chn_pen_gap = 0.0f, mo->l_chn_pen_skip = 0.0f; // Added for linear chaining
 	mo->chn_pen_gap = 1.0f, mo->chn_pen_skip = 0.05f;
-	mo->min_lc_cnt = 5, mo->min_lc_score = 40;
+	mo->min_lc_cnt = 2, mo->min_lc_score = 0; // mo->min_lc_cnt = 5, mo->min_lc_score = 40;
 	mo->min_gc_cnt = 5, mo->min_gc_score = 50;
 	mo->gdp_max_ed = 10000;
 	mo->lc_max_trim = 50;

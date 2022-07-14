@@ -204,6 +204,7 @@ typedef struct {
 static void bb_write_seq(const gfa_t *g, int32_t n, const uint32_t *v, int32_t l_seq, char *seq)
 {
 	int32_t k, l;
+	extern unsigned char gfa_comp_table[256];
 	for (k = n - 1, l = 0; k >= 0; --k) {
 		const gfa_seg_t *s = &g->seg[v[k]>>1];
 		if (v[k]&1) {

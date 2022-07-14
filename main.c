@@ -5,6 +5,8 @@
 #include "gfa-priv.h"
 #include "sys.h"
 #include "ketopt.h"
+#include "graphUtils.h"
+#include <chrono> 
 
 #ifdef __linux__
 #include <sys/resource.h>
@@ -95,12 +97,15 @@ static inline void yes_or_no(uint64_t *flag_, uint64_t f, int long_idx, const ch
 
 int main(int argc, char *argv[])
 {
-	const char *opt_str = "x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:DSc";
+	const char *opt_str = "s:z:y:x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:DSc";
 	ketopt_t o = KETOPT_INIT;
 	mg_mapopt_t opt;
 	mg_idxopt_t ipt;
 	mg_ggopt_t gpt;
 	int i, c, ret, n_threads = 4;
+	float scale_factor = 200;
+	int y = 0;
+	int z = 0;
 	char *s;
 	FILE *fp_help = stderr;
 	gfa_t *g;
@@ -130,6 +135,9 @@ int main(int argc, char *argv[])
 		if (c == 'w') ipt.w = atoi(o.arg);
 		else if (c == 'k') ipt.k = atoi(o.arg);
 		else if (c == 't') n_threads = atoi(o.arg);
+		else if (c == 's') scale_factor = atof(o.arg);
+		else if (c == 'z') z = atoi(o.arg);
+		else if (c == 'y') y = atoi(o.arg);
 		else if (c == 'f') opt.occ_max1_frac = atof(o.arg);
 		else if (c == 'g') opt.max_gap = mm_parse_num(o.arg);
 		else if (c == 'F') opt.max_frag_len = mm_parse_num(o.arg);
@@ -253,6 +261,9 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    --call       call the graph path in each bubble and output BED\n");
 		fprintf(fp_help, "  Input/output:\n");
 		fprintf(fp_help, "    -t INT       number of threads [%d]\n", n_threads);
+		fprintf(fp_help, "    -s float     scale factor [%f]\n", scale_factor);
+		fprintf(fp_help, "    -z int       debug_chain [%d]\n", z);
+		fprintf(fp_help, "    -y int       liner_reference [%d]\n", y);
 		fprintf(fp_help, "    -o FILE      output mappings to FILE [stdout]\n");
 		fprintf(fp_help, "    -K NUM       minibatch size for mapping [500M]\n");
 		fprintf(fp_help, "    -S           output linear chains in * sName sLen nMz div sStart sEnd qStart qEnd\n");
@@ -275,9 +286,40 @@ int main(int argc, char *argv[])
 	}
 
 	if (gpt.algo == MG_G_NONE && !(gpt.flag & MG_G_CALL)) {
+		
+		// std::cerr << "[Mapping Reads]" << std::endl;
+		/* Indexing */
+		std::chrono::time_point<std::chrono::system_clock> start, end;
+		start = std::chrono::system_clock::now(); // start time
+		graphUtils *graphOp = new graphUtils(g);
+		graphOp->lin_ref = y;
+		graphOp->param_z = z;
+		graphOp->read_graph();
+		omp_set_dynamic(0);
+		omp_set_num_threads(n_threads);
+		graphOp->scale_factor = scale_factor;
+		// graphOp->print_graph();
+		graphOp->Connected_components();
+		int cycle_count = graphOp->is_cyclic();
+		if (cycle_count == 0)
+		{
+			graphOp->topologicat_sort();
+			graphOp->MPC();
+			graphOp->MPC_index();
+			end = std::chrono::system_clock::now(); //end time
+			std::chrono::duration<double> elapsed_seconds = end - start;
+			std::cerr << "[Indexing time for Graph Chaining : " << elapsed_seconds.count() << "(s)]"<< std::endl;
+		}else
+		{
+			std::cerr << "[Please provide acyclic rGFA]" << std::endl;
+			exit(0);
+		}
+		get_Op(graphOp); // pass pointer to map-algo.c
 		ret = mg_map_files(g, argc - (o.ind + 1), (const char**)&argv[o.ind + 1], &ipt, &opt, n_threads);
 	} else {
 		if (gpt.flag & MG_G_CALL) gfa_sort_ref_arc(g);
+		std::cerr << "[Graph Generation is not supported.]" << std::endl;
+		exit(0);
 		ret = mg_ggen(g, argc - (o.ind + 1), (const char**)&argv[o.ind + 1], &ipt, &opt, &gpt, n_threads);
 	}
 

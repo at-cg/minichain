@@ -23,6 +23,7 @@ void gfa_edopt_init(gfa_edopt_t *opt)
 
 gfa_edseq_t *gfa_edseq_init(const gfa_t *g)
 {
+	extern unsigned char gfa_comp_table[256];
 	uint32_t i, n_vtx = gfa_n_vtx(g);
 	gfa_edseq_t *es;
 	GFA_MALLOC(es, n_vtx);

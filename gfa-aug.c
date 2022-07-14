@@ -195,6 +195,7 @@ void gfa_augment(gfa_t *g, int32_t n_ins, const gfa_ins_t *ins, int32_t n_ctg, c
 static int32_t gfa_ins_shrink_semi(const gfa_t *g, int32_t pen, uint32_t v, int32_t voff, int32_t coff, uint32_t vv, int32_t vend, int32_t cend, const char *seq)
 {
 	int32_t i, j, l, dir, score, max, max_l;
+	extern unsigned char gfa_comp_table[256];
 	if (cend == coff) return 0;
 	dir = cend > coff? +1 : -1;
 	for (i = coff, j = voff, l = max_l = 0, score = max = 0; i != cend; i += dir, j += dir) {
