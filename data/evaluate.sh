@@ -17,9 +17,14 @@ echo "Evaluating results for linear genome..."
 ./k8 paftools.js mapeval Results/minichain/CHM13Y_L_5%.gaf > CHM13Y/minichain.eval
 ./k8 paftools.js mapeval Results/minimap2/CHM13Y_L_5%.gaf > CHM13Y/minimap2.eval
 
-gnuplot CHM13Y_95H/roc.gp
-convert -density 1200 CHM13Y_95H/roc-color.eps -resize 1920x1080 95H.jpg
-gnuplot CHM13Y_10H/roc.gp
-convert -density 1200 CHM13Y_10H/roc-color.eps -resize 1920x1080 10H.jpg
-gnuplot CHM13Y/roc.gp
-convert -density 1200 CHM13Y/roc-color.eps -resize 1920x1080 Linear.jpg
+cd CHM13Y_95H
+gnuplot roc.gp
+convert -density 1200 roc-color.eps -resize 1920x1080 95H.jpg
+cd ..
+cd CHM13Y_10H
+gnuplot roc.gp
+convert -density 1200 roc-color.eps -resize 1920x1080 10H.jpg
+cd ..
+cd CHM13Y
+gnuplot roc.gp
+convert -density 1200 roc-color.eps -resize 1920x1080 Linear.jpg
