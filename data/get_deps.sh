@@ -43,6 +43,6 @@ conda deactivate
 cd ..
 
 echo "Getting P6C4.model ..."
-wget "https://github.com/yukiteruono/pbsim2/blob/master/data/P6C4.model"
+wget https://raw.githubusercontent.com/yukiteruono/pbsim2/master/data/P6C4.model
 
 echo "Installed dependencies."
