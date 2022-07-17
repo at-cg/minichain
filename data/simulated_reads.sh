@@ -18,6 +18,14 @@ done
 samtools faidx CHM13Y.fa chrX > Ref/chr23.fasta
 samtools faidx CHM13Y.fa chrY > Ref/chr24.fasta
 
+echo "Indexing chromosomes..."
+for i in $(seq 1 1 24)
+do
+	samtools faidx Ref/chr$i.fasta
+	echo "Indexed chr$i"
+done
+echo "Indexed chromosomes."
+
 
 echo "Simulating reads..."
 for i in $(seq 1 1 24)
