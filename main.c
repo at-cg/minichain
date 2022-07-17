@@ -252,13 +252,13 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -p FLOAT     min secondary-to-primary score ratio [%g]\n", opt.pri_ratio);
 		fprintf(fp_help, "    -N INT       retain at most INT secondary mappings [%d]\n", opt.best_n);
 		fprintf(fp_help, "    -D           skip self diagonal matches\n");
-		fprintf(fp_help, "  Graph generation:\n");
-		fprintf(fp_help, "    --ggen       perform incremental graph generation\n");
-		fprintf(fp_help, "    -q INT       min mapping quality [%d]\n", gpt.min_mapq);
-		fprintf(fp_help, "    -l NUM       min alignment length [%d]\n", gpt.min_map_len);
-		fprintf(fp_help, "    -d NUM       min alignment length for depth calculation [%d]\n", gpt.min_depth_len);
-		fprintf(fp_help, "    -L INT       min variant length [%d]\n", gpt.min_var_len);
-		fprintf(fp_help, "    --call       call the graph path in each bubble and output BED\n");
+		// fprintf(fp_help, "  Graph generation:\n");
+		// fprintf(fp_help, "    --ggen       perform incremental graph generation\n");
+		// fprintf(fp_help, "    -q INT       min mapping quality [%d]\n", gpt.min_mapq);
+		// fprintf(fp_help, "    -l NUM       min alignment length [%d]\n", gpt.min_map_len);
+		// fprintf(fp_help, "    -d NUM       min alignment length for depth calculation [%d]\n", gpt.min_depth_len);
+		// fprintf(fp_help, "    -L INT       min variant length [%d]\n", gpt.min_var_len);
+		// fprintf(fp_help, "    --call       call the graph path in each bubble and output BED\n");
 		fprintf(fp_help, "  Input/output:\n");
 		fprintf(fp_help, "    -t INT       number of threads [%d]\n", n_threads);
 		fprintf(fp_help, "    -s float     scale factor [%f]\n", scale_factor);
@@ -271,9 +271,9 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "  Preset:\n");
 		fprintf(fp_help, "    -x STR       preset []\n");
 		fprintf(fp_help, "                 - lr: noisy long read mapping (the default)\n");
-		fprintf(fp_help, "                 - asm: asm-to-ref mapping\n");
-		fprintf(fp_help, "                 - sr: short reads\n");
-		fprintf(fp_help, "                 - ggs: incremental graph generation\n");
+		// fprintf(fp_help, "                 - asm: asm-to-ref mapping\n");
+		// fprintf(fp_help, "                 - sr: short reads\n");
+		// fprintf(fp_help, "                 - ggs: incremental graph generation\n");
 		return fp_help == stdout? 0 : 1;
 	}
 
