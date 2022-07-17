@@ -1,5 +1,5 @@
 echo " Generating 10H graph ..."
-./minigraph/minigraph -t32 --inv=off -cxggs \
+./minigraph/minigraph -t32 --inv=no -cxggs \
 CHM13Y.fa \
 HG002.1.fa \
 HG002.2.fa \
@@ -13,7 +13,7 @@ HG00673.1.fa > CHM13Y_10H.gfa
 echo " Generated 10H graph"
 
 echo " Generating 95H graph"
-./minigraph/minigraph -t32 --inv=off -cxggs  \
+./minigraph/minigraph -t32 --inv=no -cxggs  \
 CHM13Y.fa \
 HG002.1.fa \
 HG002.2.fa \
