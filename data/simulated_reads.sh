@@ -1,5 +1,14 @@
 conda activate minichain_data
 
+mkdir Reads
+mkdir Ref
+mkdir Results
+mkdir Results/minimap2
+mkdir Results/minigraph
+mkdir Results/minichain
+mkdir Results/GraphAligner
+mkdir Results/GraphChainer
+
 echo "Extracting reads..."
 for i in $(seq 1 1 22)
 do
