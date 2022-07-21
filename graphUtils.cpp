@@ -247,7 +247,7 @@ int graphUtils::is_cyclic() // Check cyclicity of component and convert to acycl
     q.clear();
     in_degree.clear();
     out_degree.clear();
-    std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]"<< std::endl;
+    // std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]"<< std::endl;
     return cycle_count;
 }
 
@@ -761,7 +761,7 @@ bool compare_dups(const Tuples &a, const Tuples &b){
     return std::tie( a.top_v , a.pos, a.task, a.d, a.path) == std::tie( b.top_v , b.pos, b.task, b.d, b.path);
 };
 
-std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, float c)
+std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
 {
     if (param_z)
     {
@@ -861,7 +861,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, float c)
         for (auto t:T) // in Topological Order of their nodes
         {
             int64_t c_ = 1;
-            int64_t d_ = c;
+            int64_t d_ = scale_factor;
             if(t.task == 0)
             {
                 int64_t val_1 = c_*( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);

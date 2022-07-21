@@ -7,6 +7,7 @@
 #include "ketopt.h"
 #include "graphUtils.h"
 #include <chrono> 
+#include <stdbool.h>
 
 #ifdef __linux__
 #include <sys/resource.h>
@@ -104,7 +105,7 @@ int main(int argc, char *argv[])
 	mg_ggopt_t gpt;
 	int i, c, ret, n_threads = 4;
 	float scale_factor = 200;
-	int z = 0;
+	bool z = false;
 	char *s;
 	FILE *fp_help = stderr;
 	gfa_t *g;
@@ -250,17 +251,17 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -p FLOAT     min secondary-to-primary score ratio [%g]\n", opt.pri_ratio);
 		fprintf(fp_help, "    -N INT       retain at most INT secondary mappings [%d]\n", opt.best_n);
 		fprintf(fp_help, "    -D           skip self diagonal matches\n");
-		// fprintf(fp_help, "  Graph generation:\n");
-		// fprintf(fp_help, "    --ggen       perform incremental graph generation\n");
-		// fprintf(fp_help, "    -q INT       min mapping quality [%d]\n", gpt.min_mapq);
-		// fprintf(fp_help, "    -l NUM       min alignment length [%d]\n", gpt.min_map_len);
-		// fprintf(fp_help, "    -d NUM       min alignment length for depth calculation [%d]\n", gpt.min_depth_len);
-		// fprintf(fp_help, "    -L INT       min variant length [%d]\n", gpt.min_var_len);
-		// fprintf(fp_help, "    --call       call the graph path in each bubble and output BED\n");
+		fprintf(fp_help, "  Graph generation:\n");
+		fprintf(fp_help, "    --ggen       perform incremental graph generation\n");
+		fprintf(fp_help, "    -q INT       min mapping quality [%d]\n", gpt.min_mapq);
+		fprintf(fp_help, "    -l NUM       min alignment length [%d]\n", gpt.min_map_len);
+		fprintf(fp_help, "    -d NUM       min alignment length for depth calculation [%d]\n", gpt.min_depth_len);
+		fprintf(fp_help, "    -L INT       min variant length [%d]\n", gpt.min_var_len);
+		fprintf(fp_help, "    --call       call the graph path in each bubble and output BED\n");
 		fprintf(fp_help, "  Input/output:\n");
 		fprintf(fp_help, "    -t INT       number of threads [%d]\n", n_threads);
 		fprintf(fp_help, "    -s float     scale factor [%f]\n", scale_factor);
-		fprintf(fp_help, "    -z int       debug_chain [%d]\n", z);
+		fprintf(fp_help, "    -z bool       debug_chain [%d]\n", z);
 		fprintf(fp_help, "    -o FILE      output mappings to FILE [stdout]\n");
 		fprintf(fp_help, "    -K NUM       minibatch size for mapping [500M]\n");
 		fprintf(fp_help, "    -S           output linear chains in * sName sLen nMz div sStart sEnd qStart qEnd\n");
@@ -268,11 +269,15 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "  Preset:\n");
 		fprintf(fp_help, "    -x STR       preset []\n");
 		fprintf(fp_help, "                 - lr: noisy long read mapping (the default)\n");
-		// fprintf(fp_help, "                 - asm: asm-to-ref mapping\n");
-		// fprintf(fp_help, "                 - sr: short reads\n");
-		// fprintf(fp_help, "                 - ggs: incremental graph generation\n");
+		fprintf(fp_help, "                 - asm: asm-to-ref mapping\n");
+		fprintf(fp_help, "                 - sr: short reads\n");
+		fprintf(fp_help, "                 - ggs: incremental graph generation\n");
 		return fp_help == stdout? 0 : 1;
 	}
+
+	// Pass parameters to index.c
+	// std::cerr << " Param_z : " << z << " Scale_factor : " << scale_factor << std::endl;
+	pass_par(z,scale_factor);
 
 	g = gfa_read(argv[o.ind]);
 	if (g == 0) {
@@ -283,39 +288,9 @@ int main(int argc, char *argv[])
 	}
 
 	if (gpt.algo == MG_G_NONE && !(gpt.flag & MG_G_CALL)) {
-		
-		// std::cerr << "[Mapping Reads]" << std::endl;
-		/* Indexing */
-		std::chrono::time_point<std::chrono::system_clock> start, end;
-		start = std::chrono::system_clock::now(); // start time
-		graphUtils *graphOp = new graphUtils(g);
-		graphOp->param_z = z;
-		graphOp->read_graph();
-		omp_set_dynamic(0);
-		omp_set_num_threads(n_threads);
-		graphOp->scale_factor = scale_factor;
-		// graphOp->print_graph();
-		graphOp->Connected_components();
-		int cycle_count = graphOp->is_cyclic();
-		if (cycle_count == 0)
-		{
-			graphOp->topologicat_sort();
-			graphOp->MPC();
-			graphOp->MPC_index();
-			end = std::chrono::system_clock::now(); //end time
-			std::chrono::duration<double> elapsed_seconds = end - start;
-			std::cerr << "[Indexing time for Graph Chaining : " << elapsed_seconds.count() << "(s)]"<< std::endl;
-		}else
-		{
-			std::cerr << "[Please provide acyclic rGFA]" << std::endl;
-			exit(0);
-		}
-		get_Op(graphOp); // pass pointer to map-algo.c
 		ret = mg_map_files(g, argc - (o.ind + 1), (const char**)&argv[o.ind + 1], &ipt, &opt, n_threads);
 	} else {
 		if (gpt.flag & MG_G_CALL) gfa_sort_ref_arc(g);
-		std::cerr << "[Graph Generation is not supported.]" << std::endl;
-		exit(0);
 		ret = mg_ggen(g, argc - (o.ind + 1), (const char**)&argv[o.ind + 1], &ipt, &opt, &gpt, n_threads);
 	}
 

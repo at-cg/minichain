@@ -392,8 +392,6 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 	*/
 
 	// Integrate Chain
-
-
 	mg128_t *anchor_;
 	anchor_ = a;
 	std::vector<mg128_t> anchor;
@@ -402,16 +400,8 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 	{
 		anchor[i] = anchor_[i];
 	}
-
 	/* Chaining */
-	std::chrono::time_point<std::chrono::system_clock> start, end;
-	start = std::chrono::system_clock::now(); // start time
-	graphOp->seq_name = qname;
-	std::vector<mg128_t> best = graphOp->Chaining(anchor ,graphOp->scale_factor);
-	end = std::chrono::system_clock::now(); //end time
-	std::chrono::duration<double> elapsed_seconds = end - start;
-	elapsed_seconds = end - start;
-	// std::cerr << " Chaining Time : " << elapsed_seconds.count() << " (s) "<< std::endl;
+	std::vector<mg128_t> best = graphOp->Chaining(anchor);
 	kfree(b->km, a);
 	KMALLOC(b->km, a, best.size());
 	for (size_t i = 0; i < best.size(); i++)
@@ -419,7 +409,6 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 		a[i] = best[i];
 	}
 	n_a = best.size();
-
 	/* clear anchors */
 	anchor.clear();
 

@@ -5,6 +5,10 @@ git clone https://github.com/gsc74/minichain
 cd minichain && make
 # Map sequence to graph
 ./minichain -cx lr test/MT.gfa test/MT-orangA.fa > out.gaf
+# Generate graph 
+./minichain -t32 -cxggs test/MT-human.fa test/MT-orangA.fa test/MT-orangA.fa -l500 -d500 > out.gaf
+# Call per-sample path in each bubble/variation
+./minichain -t32 -cxasm -l10k --call test/MT.gfa test/MT-orangA.fa > orangA.call.bed
 ```
 
 ## Table of Contents
@@ -14,12 +18,13 @@ cd minichain && make
 - [Users' Guide](#uguide)
   - [Installation](#install)
   - [Sequence mapping](#map)
+  - [Graph generation](#graph_gen)
 - [Limitations](#limit)
 - [Credits](#credit)
 
 ## <a name="intro"></a>Introduction
 
-minichain is a sequence-to-graph mapper.
+minichain is a sequence-to-graph mapper and graph generation tool.
 
 ## <a name="uguide"></a>Users' Guide
 
@@ -39,11 +44,18 @@ minichain can be used for sequence-to-sequence mapping as well as sequence-to-gr
 ./minichain -t32 -cx lr test/MT.gfa test/MT-orangA.fa > out.gaf
 ```
 
+### <a name="graph_gen"></a>Graph generation
+minichain can be used for incremental graph generation, currently minichain only supports event insertions, inversions are not yet supported.
+```sh
+# Generate graph 
+./minichain -t32 -cxggs test/MT-huma.fa test/MT-orangA.fa test/MT-orangA.fa -l500 -d500 > out.gaf
+```
+
 ## <a name="limit"></a>Limitations
 
 * Current version(v1.0) only supports acyclic [rGFA][rgfa] and [GFA][gfa1] for sequence-to-graph mapping.
 
-* Graph Generation is not supported.
+* Inversions are not yet supported in graph generation.
 
 ## <a name="credit"></a>Credits
 minichain utilises code base of [minigraph][minigraph], which is released under MIT License.

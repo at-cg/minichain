@@ -98,9 +98,8 @@ class graphUtils
 	/* Map Top_Sort */
 	std::vector<std::vector<int>> map_top_sort;	
 	float scale_factor;
-	int param_z;
+	bool param_z;
 	int lin_ref = 0;
-	std::string seq_name;
 
   
     graphUtils(gfa_t *g); // This is constructor
@@ -123,7 +122,7 @@ class graphUtils
 
     void MPC_index();
 
-	std::vector<mg128_t> Chaining(std::vector<mg128_t> anchors, float c);
+	std::vector<mg128_t> Chaining(std::vector<mg128_t> anchors);
 
 };
 

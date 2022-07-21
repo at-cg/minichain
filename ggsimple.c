@@ -7,6 +7,7 @@
 #include "sys.h"
 #include "ggen.h"
 #include "kvec-km.h"
+#include <stdbool.h>
 
 int32_t mg_gc_index(void *km, int min_mapq, int min_map_len, int min_depth_len, const gfa_t *g, int32_t n_seq, mg_gchains_t *const* gcs,
 					double *a_dens, int32_t **soff_, int32_t **qoff_, mg_intv_t **sintv_, mg_intv_t **qintv_)
@@ -255,7 +256,7 @@ void mg_ggsimple(void *km, const mg_ggopt_t *opt, gfa_t *g, int32_t n_seq, const
 					} else score = -1, mlen = 0, blen = pd > qd? pd : qd;
 					fprintf(stderr, "\nIS\t%d==%d\tnwcmp:%d\tmlen:%d\tblen:%d\n", pd, l_pseq, score, mlen, blen);
 				}
-				if (is_inv) { // turn one inversion to two events
+				if (is_inv && false) { // turn one inversion to two events
 					gfa_ins_t I_inv[2];
 					I_inv[0].ctg = I_inv[1].ctg = I.ctg;
 					// the first event
@@ -516,7 +517,7 @@ void mg_ggsimple_cigar(void *km, const mg_ggopt_t *opt, gfa_t *g, int32_t n_seq,
 					fprintf(stderr, "\nIS\t%d==%d\tnwcmp:%d\tmlen:%d\tblen:%d\n", pd, l_pseq, score, mlen, blen);
 					//if (I.voff[0] == 2305301) { for (k = st; k < en; ++k) fprintf(stderr, "%d%c", intv[k].len, "MIDNSHP=XB"[intv[k].op]); fprintf(stderr, "\n"); }
 				}
-				if (is_inv) { // turn one inversion to two events
+				if (is_inv && false) { // turn one inversion to two events
 					gfa_ins_t I_inv[2];
 					I_inv[0].ctg = I_inv[1].ctg = I.ctg;
 					// the first event

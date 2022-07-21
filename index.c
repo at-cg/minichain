@@ -4,6 +4,7 @@
 #include "kthread.h"
 #include "kvec-km.h"
 #include "sys.h"
+#include "graphUtils.h"
 
 #define idx_hash(a) ((a)>>1)
 #define idx_eq(a, b) ((a)>>1 == (b)>>1)
@@ -208,6 +209,15 @@ mg_idx_t *mg_index_core(gfa_t *g, int k, int w, int b, int n_threads)
 	return gi;
 }
 
+/* Pass parameters */
+params* par;
+void pass_par(bool &param_z, float &scale_factor)
+{
+	par = new params();
+	par->param_z = param_z;
+	par->scale_factor = scale_factor; 
+}
+
 mg_idx_t *mg_index(gfa_t *g, const mg_idxopt_t *io, int n_threads, mg_mapopt_t *mo)
 {
 	int32_t i, j;
@@ -222,6 +232,28 @@ mg_idx_t *mg_index(gfa_t *g, const mg_idxopt_t *io, int n_threads, mg_mapopt_t *
 	if (gi == 0) return 0;
 	gi->es = gfa_edseq_init(gi->g);
 	gi->n_seg = g->n_seg;
+	/* Indexing */
+	graphUtils *graphOp = new graphUtils(g);
+	graphOp->param_z = par->param_z;
+	graphOp->read_graph();
+	omp_set_dynamic(0);
+	omp_set_num_threads(n_threads);
+	graphOp->scale_factor = par->scale_factor;
+	// graphOp->print_graph();
+	graphOp->Connected_components();
+	int cycle_count = graphOp->is_cyclic();
+	if (cycle_count == 0)
+	{
+		graphOp->topologicat_sort();
+		graphOp->MPC();
+		graphOp->MPC_index();
+	}else
+	{
+		std::cerr << "[Please provide acyclic rGFA]" << std::endl;
+		exit(0);
+	}
+	get_Op(graphOp); // pass pointer to map-algo.c
+	
 	if (mg_verbose >= 3)
 		fprintf(stderr, "[M::%s::%.3f*%.2f] indexed the graph\n", __func__,
 				realtime() - mg_realtime0, cputime() / (realtime() - mg_realtime0));
