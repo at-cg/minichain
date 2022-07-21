@@ -120,5 +120,7 @@ echo "Graph Statistics"
 conda activate minichain_data
 gfatools gfa2fa CHM13Y_95H.gfa > CHM13Y_95H.fa
 gfatools gfa2fa CHM13Y_10H.gfa > CHM13Y_10H.fa
-seqkit stats --all CHM13Y_95H.fa > CHM13Y_95H_stats.txt
-seqkit stats --all CHM13Y_10H.fa > CHM13Y_10H_stats.txt
+gfatools stat CHM13Y_95H.gfa > CHM13Y_95H_stats.txt
+gfatools stat CHM13Y_10H.gfa > CHM13Y_10H_stats.txt
+seqkit stats --all CHM13Y_95H.fa >> CHM13Y_95H_stats.txt
+seqkit stats --all CHM13Y_10H.fa >> CHM13Y_10H_stats.txt
