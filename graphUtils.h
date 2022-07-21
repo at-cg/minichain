@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <stack>
 #include <algorithm>
 #include <queue>
 #include <limits>
@@ -16,21 +17,6 @@
 #include <chrono> 
 #include <omp.h>
 
-// Boost Libraries
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/connected_components.hpp>
-#include <boost/graph/undirected_graph.hpp>
-
-
-// Boost Graph Constructor
-typedef
-  boost::adjacency_list<
-    boost::vecS            // edge list
-  , boost::vecS            // vertex list
-  , boost::undirectedS     // directedness (beacuse can't compute CC on DAG)                  
-  // property associated with vertices
-  >
-Graph;
 
 // Anchors
 struct Anchors {
@@ -113,8 +99,7 @@ class graphUtils
 	std::vector<std::vector<int>> map_top_sort;	
 	float scale_factor;
 	int param_z;
-	int lin_ref = 0; // Linear Reference
-
+	int lin_ref = 0;
 	std::string seq_name;
 
   

@@ -22,15 +22,29 @@ void graphUtils::read_graph()
         node_len[2*v] = len;
         node_len[2*v + 1] = len;
     }
+    // look for all the edges , if the sum of all the 
+    // edges are zero then, that's a linear reference
+    u_int32_t num_edges = 0;
     for (v = 0; v < n_vtx; v++)
     {
         gfa_arc_t *av = gfa_arc_a(g, v);
         int n_edges = gfa_arc_n(g, v);
-        if (lin_ref == 1)
+        int v_ = av->v_lv >> 32;
+        // std::cerr << " node : " << v << " node_len : " << node_len[v] << std::endl; 
+        for (int i = 0; i < n_edges; i++)
         {
-            // std::cerr << "Mapping Reads to Linear Reference! " << std::endl;
-            // lin_ref = true;
-            // Do Nothing!
+            num_edges++;
+        }
+    }
+
+
+    for (v = 0; v < n_vtx; v++)
+    {
+        gfa_arc_t *av = gfa_arc_a(g, v);
+        int n_edges = gfa_arc_n(g, v);
+        if (num_edges == 0) // Linear Reference
+        {
+            lin_ref = 1; // Mark as a linear reference
         }else
         {
             int v_ = av->v_lv >> 32;
@@ -58,6 +72,35 @@ void graphUtils::print_graph()
     }
 }
 
+void DFS(std::vector<std::vector<int>> un_adj, std::vector<bool> &visited, int u, std::vector<int> &component, int num_components)
+{
+    std::stack<int> stack;
+
+    // Push the source node
+    stack.push(u);
+
+    while (!stack.empty())
+    {
+        int s = stack.top();
+        stack.pop();
+        component[s] = num_components;
+
+        if (!visited[s])
+        {
+            visited[s] = true;
+        }
+        
+        for (auto v:un_adj[s])
+        {
+            if (!visited[v])
+            {
+                stack.push(v);
+            }
+        }
+    } 
+
+}
+
 void graphUtils::Connected_components()
 {
     size_t num_components;
@@ -71,21 +114,35 @@ void graphUtils::Connected_components()
         }
     }else
     {
-        // Create Graph
-        Graph G; // Local Graph (No need after computing connected components)
-        // Add edges
-        for (int i = 0; i < n_vtx; i++)
+
+        // Create Adjacency list
+        std::vector<std::vector<int>> un_adj;
+        un_adj.resize(n_vtx); // u -> v
+        for (int u = 0; u < n_vtx; u++)
         {
-            for (int &x : adj_[i])
+            for (auto v:adj_[u])
             {
-                boost::add_edge(i, x, G); // add an edge between vertices i and x in the graph (G)
+                un_adj[u].push_back(v);
+                un_adj[v].push_back(u);
             }
         }
-        // Compute Connected Components
-        component.resize(n_vtx);
-        num_components = boost::connected_components(G, &component[0]);
-        G.clear(); // purge the Undirected Graph
+
+        num_components = 0;
+        component.resize(n_vtx);  
+        // run DFS
+        std::vector<bool> visited(n_vtx,false);
+        for (int u = 0; u < n_vtx; u++)
+        {
+            if (visited[u] == false)
+            {
+                DFS(un_adj,visited,u,component,num_components);
+                num_components++;
+            }
+        } 
+        un_adj.clear(); 
+        visited.clear(); 
     }
+
     num_cid = num_components;
     // Storing Connected Components
     conn_comp.resize(num_components);

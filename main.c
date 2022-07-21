@@ -97,14 +97,13 @@ static inline void yes_or_no(uint64_t *flag_, uint64_t f, int long_idx, const ch
 
 int main(int argc, char *argv[])
 {
-	const char *opt_str = "s:z:y:x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:DSc";
+	const char *opt_str = "s:z:x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:DSc";
 	ketopt_t o = KETOPT_INIT;
 	mg_mapopt_t opt;
 	mg_idxopt_t ipt;
 	mg_ggopt_t gpt;
 	int i, c, ret, n_threads = 4;
 	float scale_factor = 200;
-	int y = 0;
 	int z = 0;
 	char *s;
 	FILE *fp_help = stderr;
@@ -137,7 +136,6 @@ int main(int argc, char *argv[])
 		else if (c == 't') n_threads = atoi(o.arg);
 		else if (c == 's') scale_factor = atof(o.arg);
 		else if (c == 'z') z = atoi(o.arg);
-		else if (c == 'y') y = atoi(o.arg);
 		else if (c == 'f') opt.occ_max1_frac = atof(o.arg);
 		else if (c == 'g') opt.max_gap = mm_parse_num(o.arg);
 		else if (c == 'F') opt.max_frag_len = mm_parse_num(o.arg);
@@ -263,7 +261,6 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -t INT       number of threads [%d]\n", n_threads);
 		fprintf(fp_help, "    -s float     scale factor [%f]\n", scale_factor);
 		fprintf(fp_help, "    -z int       debug_chain [%d]\n", z);
-		fprintf(fp_help, "    -y int       liner_reference [%d]\n", y);
 		fprintf(fp_help, "    -o FILE      output mappings to FILE [stdout]\n");
 		fprintf(fp_help, "    -K NUM       minibatch size for mapping [500M]\n");
 		fprintf(fp_help, "    -S           output linear chains in * sName sLen nMz div sStart sEnd qStart qEnd\n");
@@ -292,7 +289,6 @@ int main(int argc, char *argv[])
 		std::chrono::time_point<std::chrono::system_clock> start, end;
 		start = std::chrono::system_clock::now(); // start time
 		graphUtils *graphOp = new graphUtils(g);
-		graphOp->lin_ref = y;
 		graphOp->param_z = z;
 		graphOp->read_graph();
 		omp_set_dynamic(0);

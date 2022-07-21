@@ -13,30 +13,28 @@ cd minichain && make
 - [Introduction](#intro)
 - [Users' Guide](#uguide)
   - [Installation](#install)
-  - [Sequence-to-graph mapping](#map)
+  - [Sequence mapping](#map)
 - [Limitations](#limit)
+- [Credits](#credit)
 
 ## <a name="intro"></a>Introduction
 
-Minichain is a sequence-to-graph mapper with base-level alignment support.
+minichain is a sequence-to-graph mapper.
 
 ## <a name="uguide"></a>Users' Guide
 
 ### <a name="install"></a>Installation
 
-### Dependencies
+#### Dependencies
 1) [gcc9][gcc9] or later version
 2) [zlib][zlib]
-3) [Boost][boost]
-4) [Open MPI][openmpi]
 
 
-
-### <a name="map"></a>Sequence-to-graph mapping
-Minichain can be used for sequence-to-sequence mapping as well as sequence-to-graph mapping, with base level alignment support.
+### <a name="map"></a>Sequence mapping
+minichain can be used for sequence-to-sequence mapping as well as sequence-to-graph mapping. Since minichain utilises [minigraph][minigraph] code-base, hence base level alignment is supported with [wavefront alignment algorithm][wfa].
 ```sh
 # Map sequence to sequence
-./minichain -t32 -cx lr test/MT-human.fa test/MT-orangA.fa -y1 > out.paf
+./minichain -t32 -cx lr test/MT-human.fa test/MT-orangA.fa > out.paf
 # Map sequence to graph
 ./minichain -t32 -cx lr test/MT.gfa test/MT-orangA.fa > out.gaf
 ```
@@ -47,11 +45,15 @@ Minichain can be used for sequence-to-sequence mapping as well as sequence-to-gr
 
 * Graph Generation is not supported.
 
-[spack]: https://spack.io/
+## <a name="credit"></a>Credits
+minichain utilises code base of [minigraph][minigraph], which is released under MIT License.
+Reference: [The design and construction of reference pangenome graphs with minigraph.][paper]
+
+[wfa]: https://doi.org/10.1093/bioinformatics/btaa777
+[paper]: https://doi.org/10.1186/s13059-020-02168-z
+[minigraph]: https://github.com/lh3/minigraph
 [zlib]: http://zlib.net/
 [gcc9]: http://zlib.net/
-[openmpi]: https://www.open-mpi.org/
-[boost]: https://boost.org/
 [minimap2]: https://github.com/lh3/minimap2
 [rgfa]: https://github.com/lh3/gfatools/blob/master/doc/rGFA.md
 [gfa1]: https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md
