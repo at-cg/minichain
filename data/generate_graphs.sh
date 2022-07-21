@@ -110,4 +110,15 @@ NA20129.2.fa \
 NA21309.1.fa \
 NA21309.2.fa > CHM13Y_95H.gfa
 echo " Generated 95H graph"
+
+echo " Generating dummy Linear graph for GraphLAigner and GraphChainer..."
+./minigraph/minigraph -t32 --inv=no -cxggs CHM13Y.fa > CHM13Y_L.gfa
+echo "Generated dummy graph"
 echo "Generated 10H graph and 95H graph"
+
+echo "Graph Statistics"
+conda activate minichain_data
+gfatools gfa2fa CHM13Y_95H.gfa > CHM13Y_95H.fa
+gfatools gfa2fa CHM13Y_10H.gfa > CHM13Y_10H.fa
+seqkit stats --all CHM13Y_95H.fa > CHM13Y_95H_stats.txt
+seqkit stats --all CHM13Y_10H.fa > CHM13Y_10H_stats.txt

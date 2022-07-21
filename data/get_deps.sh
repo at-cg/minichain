@@ -1,7 +1,7 @@
 echo "Getting agc, pbsim2, imagemagick and samtools with conda..."
 conda create -n minichain_data
 conda activate minichain_data
-conda install -y -c bioconda agc pbsim2 samtools
+conda install -y -c bioconda agc pbsim2 samtools seqkit gfatools
 conda install -y -c conda-forge imagemagick gnuplot 
 conda deactivate
 

@@ -19,7 +19,9 @@ set yran [0.9:1.02]
 set log x
 set format x "10^{%L}"
 set key bot right
-plot "<./eval2roc.pl minimap2.eval" u 2:3 t "minimap2" w lp ls 1, \
+plot "<./eval2roc.pl minichain.eval" u 2:3 t "minichain" w lp ls 1, \
      "<./eval2roc.pl minigraph.eval" u 2:3 t "minigraph" w lp ls 2, \
-     "<./eval2roc.pl minichain.eval" u 2:3 t "minichain" w lp ls 3
+     "<./eval2roc.pl GraphAligner.eval" u 2:3 t "GraphAligner" w lp ls 3, \
+     "<./eval2roc.pl GraphChainer.eval" u 2:3 t "GraphChainer" w lp ls 4
+
 unset label
