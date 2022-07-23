@@ -6,7 +6,7 @@ cd minichain && make
 # Map sequence to graph
 ./minichain -cx lr test/MT.gfa test/MT-orangA.fa > out.gaf
 # Generate graph 
-./minichain -t32 -cxggs test/MT-human.fa test/MT-orangA.fa test/MT-orangA.fa -l500 -d500 > out.gaf
+./minichain -t32 -cxggs test/MT-human.fa test/MT-orangA.fa test/MT-chimp.fa -l500 -d500 > out.gaf
 # Call per-sample path in each bubble/variation
 ./minichain -t32 -cxasm -l10k --call test/MT.gfa test/MT-orangA.fa > orangA.call.bed
 ```
