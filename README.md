@@ -48,7 +48,7 @@ minichain can be used for sequence-to-sequence mapping as well as sequence-to-gr
 minichain can be used for incremental graph generation, currently minichain only supports event insertions, inversions are not yet supported.
 ```sh
 # Generate graph 
-./minichain -t32 -cxggs test/MT-human.fa test/MT-orangA.fa test/MT-orangA.fa -l500 -d500 > out.gaf
+./minichain -t32 -cxggs test/MT-human.fa test/MT-orangA.fa test/MT-chimp.fa -l500 -d500 > out.gaf
 ```
 
 ## <a name="limit"></a>Limitations
