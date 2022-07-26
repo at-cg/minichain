@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "gfa.h"
 
-#define MG_VERSION "Minichain : 1.0, Minigraph : 0.19-r551" // "0.19-r551"
+#define MG_VERSION "1.0"
 
 #define MG_M_SPLICE       0x10
 #define MG_M_SR           0x20

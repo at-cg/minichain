@@ -598,6 +598,16 @@ void graphUtils::MPC()
             }
         }
    }
+   // Compute [min-max] paths for cids
+  int min = path_cover[0].size();
+  int max = min;
+  for(int cid = 1; cid < num_cid; cid++)
+  {
+      min = min<path_cover[cid].size()?min:path_cover[cid].size();
+      max = max>path_cover[cid].size()?max:path_cover[cid].size();
+  }
+  fprintf(stderr, "[M::%s] range wcc [%d-%d] \n", __func__,min,max);
+  // std::cerr << "[range wcc [" << min << "-" << max << "]" << std::endl; 
    // std::cerr << " MPC Computed! " << std::endl;
 }
 
