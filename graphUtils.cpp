@@ -812,6 +812,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         std::vector<Tuples> T; // Search Tree
         std::vector<std::pair<int64_t,int>> C;
         C.resize(N);
+	int64_t sf = scale_factor;
+	int64_t cost =(int64_t) (M[cid][0].d-M[cid][0].c+1)*sf;
         for (int j = 0; j < N; j++)
         {
             int node = M[cid][j].v;
@@ -860,7 +862,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 }   
             }
             /* Initialise C */
-            C[j] = {(int64_t)(M[cid][j].d - M[cid][j].c + 1) , -1};
+            C[j] = {cost , -1};
         }
 
         /* Erase redundant and Sort the Tuples by T.v, T.pos, T.task */ 
@@ -870,12 +872,10 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         // Chaining
         for (auto t:T) // in Topological Order of their nodes
         {
-            int64_t c_ = 1;
-            int64_t d_ = scale_factor;
             if(t.task == 0)
             {
-                int64_t val_1 = c_*( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
-                int64_t val_2 = d_*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
+                int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
+                int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
                 std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
                 if (rmq.first > std::numeric_limits<int64_t>::min())
                 {
@@ -887,7 +887,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 }
             }else
             {
-                int64_t val_3 = c_*( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
+                int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
                 I[t.path].add(M[cid][t.anchor].d, {C[t.anchor].first + val_3 , t.anchor});
                 if (param_z)
                 {
