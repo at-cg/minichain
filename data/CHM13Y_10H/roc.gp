@@ -11,10 +11,14 @@ set out "roc-color.eps"
 
 set pointsize 2.0
 
-set xlab "Error rate of mapped PacBio reads"
-set ylab "Fraction of mapped reads" off +1.8
+set xlab "{/*1.5 Error rate of mapped PacBio reads}"
+set ylab "{/*1.5 Fraction of mapped reads}" off +0.6
 set ytics 0.02
-set yran [0.9:1.02]
+set yran [0.9:1.0005]
+
+set xtics font ", 35"
+set ytics font ", 35"
+
 
 set log x
 set format x "10^{%L}"
