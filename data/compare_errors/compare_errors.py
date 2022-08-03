@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from matplotlib import pyplot as plt
 import numpy as np
 import re
@@ -11,7 +12,7 @@ def overlap(read_metadata,map_region):
     x = re.findall(pattern,map_region)
     X_ = []
     Y_ = []
-    for i in range(len(x)):    
+    for i in range(len(x)):
         X_.append(int(re.findall('\d+-\d+',x[i])[0].split("-")[0]))
         Y_.append(int(re.findall('\d+-\d+',x[i])[0].split("-")[1]))
     ## Compare here
@@ -25,7 +26,7 @@ def overlap(read_metadata,map_region):
     else:
         return False
 
-graphs = ["Linear","10H","95H"]
+graphs = ["Linear","10H","20H","40H","60H","80H","95H"]
 wrong_count = []
 wrong_reg = []
 wrong_path = []
@@ -59,7 +60,9 @@ wrong_count = wrong_count/read_count
 wrong_path = wrong_path/read_count
 
 plt.bar(graphs,wrong_count,label='Wrong region',zorder=3)
+plt.plot(graphs,wrong_count,marker='x',color='r',zorder=4)
 plt.bar(graphs,wrong_path,label='Wrong path',zorder=3)
+plt.plot(graphs,wrong_path,marker='x',color='r',zorder=4)
 plt.grid(zorder=0)
 plt.legend()
 plt.xlabel('Graphs')
