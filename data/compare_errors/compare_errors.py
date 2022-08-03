@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 from matplotlib import pyplot as plt
 import numpy as np
 import re
@@ -16,18 +15,12 @@ def overlap(read_metadata,map_region):
         X_.append(int(re.findall('\d+-\d+',x[i])[0].split("-")[0]))
         Y_.append(int(re.findall('\d+-\d+',x[i])[0].split("-")[1]))
     ## Compare here
-    olp = []
+    olp = 0.0
     for i in range(len(x)):
-        olp.append(max(0, min(Y, Y_[i]) - max(X, X_[i])))
-    olp =  np.asarray(olp,dtype=float)
-    olp = olp/(Y-X) # overlap fraction
+        olp = olp + (max(0, min(Y, Y_[i]) - max(X, X_[i]))/(Y-X))
     threshold = 0.10
-    is_olp = False
-    for i in range(len(x)):
-        if olp[i] > threshold:
-            is_olp = True
-            break
-    if is_olp == True:
+    # print("threshold : ", threshold, " olp : ",olp)
+    if olp >= threshold:
         return True
     else:
         return False
@@ -71,4 +64,4 @@ plt.grid(zorder=0)
 plt.legend()
 plt.xlabel('Graphs')
 plt.ylabel('Fraction of wrong read mapping')
-plt.savefig("Compare_erros.png",dpi=1200)
+plt.savefig("bar_plt.png",dpi=1200)
