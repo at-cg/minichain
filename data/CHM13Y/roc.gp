@@ -7,9 +7,11 @@ set style line 4 lt 1 pt 4 lc rgb "#984ea3" lw 2;
 set style line 5 lt 1 pt 6 lc rgb "#ff7f00" lw 2;
 set style line 6 lt 1 pt 8 lc rgb "#f781bf" lw 2;
 
-set out "roc-color.eps"
+set out "Linear.eps"
 
 set pointsize 2.0
+
+set key font ",32"
 
 set xlab "{/*1.5 Error rate of mapped PacBio reads}"
 set ylab "{/*1.5 Fraction of mapped reads}" off +0.6
@@ -20,7 +22,7 @@ set xtics font ", 35"
 set ytics font ", 35"
 
 
-
+set xrange [:0.1]
 set log x
 set format x "10^{%L}"
 set key bot right

@@ -21,13 +21,13 @@ echo "Evaluating results for linear genome..."
 
 cd CHM13Y_95H
 gnuplot roc.gp
-convert -density 1200 roc-color.eps -resize 1920x1080 95H.jpg
+convert -density 1200 95H.eps -resize 1920x1080 95H.jpg
 cd ..
 cd CHM13Y_10H
 gnuplot roc.gp
-convert -density 1200 roc-color.eps -resize 1920x1080 10H.jpg
+convert -density 1200 10H.eps -resize 1920x1080 10H.jpg
 cd ..
 cd CHM13Y
 gnuplot roc.gp
-convert -density 1200 roc-color.eps -resize 1920x1080 Linear.jpg
+convert -density 1200 Linear.eps -resize 1920x1080 Linear.jpg
 cd ..
