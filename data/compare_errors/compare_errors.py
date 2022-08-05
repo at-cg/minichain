@@ -1,8 +1,6 @@
-#!/usr/bin/python3
-
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.ticker import StrMethodFormatter
+from matplotlib.ticker import EngFormatter, StrMethodFormatter
 import matplotlib
 import numpy as np
 import re
@@ -29,8 +27,7 @@ def overlap(read_metadata,map_region):
     else:
         return False
 
-
-graphs = ["Linear","10H","20H","40H","60H","80H","95H"]
+graphs = ["1H","10H","40H","80H","95H"]
 tools = ["minichain","minigraph","GraphAligner","GraphChainer"]
 wrong_region = dict()
 correct_region = dict()
@@ -68,8 +65,6 @@ for tool in tools:
     wrong_region[tool] = wrong_count*100
     correct_region[tool] = wrong_path*100
 
-
-
 graphs_ = []
 for i in range(len(tools)):
     for graph in graphs:
@@ -98,6 +93,7 @@ fig.set_size_inches(12, 4, forward=True)
 ax.yaxis.set_major_formatter(StrMethodFormatter(u"{x:.1f}%"))
 fig.autofmt_xdate()
 plt.xticks(range(len(graphs_)),graphs_)
+#plt.grid(zorder=0)
 plt.gca().yaxis.grid(True)
 plt.rc('axes', labelsize=11)
 plt.rc('xtick', labelsize=11)
@@ -108,5 +104,3 @@ plt.xlabel('Graphs')
 plt.ylabel('Percentage of wrong read mapping')
 plt.title('minichain                                    minigraph                            GraphAligner                        GraphChainer', y=-0.35)
 plt.savefig("compare_error.jpg",dpi=300,bbox_inches='tight')
-
-
