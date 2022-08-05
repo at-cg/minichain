@@ -94,6 +94,14 @@ ax.yaxis.set_major_formatter(StrMethodFormatter(u"{x:.1f}%"))
 fig.autofmt_xdate()
 plt.xticks(range(len(graphs_)),graphs_)
 #plt.grid(zorder=0)
+plt.text(0, 3.5, 'minichain', 
+        fontsize = 11, color = 'black')
+plt.text(5.5, 3.5, 'minigraph', 
+        fontsize = 11, color = 'black')
+plt.text(10.5, 3.5, 'GraphAligner', 
+        fontsize = 11, color = 'black')
+plt.text(16.5, 3.5, 'GraphChainer', 
+        fontsize = 11, color = 'black')
 plt.gca().yaxis.grid(True)
 plt.rc('axes', labelsize=11)
 plt.rc('xtick', labelsize=11)
@@ -102,5 +110,4 @@ matplotlib.rc('font', size=11)
 matplotlib.rc('axes', titlesize=11)
 plt.xlabel('Graphs')
 plt.ylabel('Percentage of wrong read mapping')
-plt.title('minichain                                    minigraph                            GraphAligner                        GraphChainer', y=-0.35)
 plt.savefig("compare_error.jpg",dpi=300,bbox_inches='tight')
