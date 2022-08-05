@@ -2,6 +2,8 @@
 
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
+from matplotlib.ticker import StrMethodFormatter
+import matplotlib
 import numpy as np
 import re
 
@@ -14,7 +16,7 @@ def overlap(read_metadata,map_region):
     x = re.findall(pattern,map_region)
     X_ = []
     Y_ = []
-    for i in range(len(x)):
+    for i in range(len(x)):    
         X_.append(int(re.findall('\d+-\d+',x[i])[0].split("-")[0]))
         Y_.append(int(re.findall('\d+-\d+',x[i])[0].split("-")[1]))
     ## Compare here
@@ -26,6 +28,7 @@ def overlap(read_metadata,map_region):
         return True
     else:
         return False
+
 
 graphs = ["Linear","10H","20H","40H","60H","80H","95H"]
 tools = ["minichain","minigraph","GraphAligner","GraphChainer"]
@@ -62,14 +65,16 @@ for tool in tools:
     wrong_path = np.asarray(wrong_path,dtype=float)
     wrong_count = wrong_count/read_count
     wrong_path = wrong_path/read_count
-    wrong_region[tool] = wrong_count
-    correct_region[tool] = wrong_path
+    wrong_region[tool] = wrong_count*100
+    correct_region[tool] = wrong_path*100
+
+
 
 graphs_ = []
 for i in range(len(tools)):
     for graph in graphs:
         graphs_.append(graph)
-    graphs_.append(" ")
+    graphs_.append(" ")    
 
 X_axis = np.arange(len(graphs))
 fig, ax = plt.subplots()
@@ -89,9 +94,19 @@ for tool in tools:
 blue_patch = mpatches.Patch(color='blue', label='wrong region')
 orange_patch = mpatches.Patch(color='orange', label='correct region')
 plt.legend(handles=[blue_patch, orange_patch])
+fig.set_size_inches(12, 4, forward=True)
+ax.yaxis.set_major_formatter(StrMethodFormatter(u"{x:.1f}%"))
 fig.autofmt_xdate()
 plt.xticks(range(len(graphs_)),graphs_)
 plt.grid(zorder=0)
+plt.rc('axes', labelsize=11)
+plt.rc('xtick', labelsize=11)
+plt.rc('ytick', labelsize=11)
+matplotlib.rc('font', size=11)
+matplotlib.rc('axes', titlesize=11)
 plt.xlabel('Graphs')
-plt.ylabel('Fraction of wrong read mapping')
-plt.savefig("compare_error.png",dpi=1200,bbox_inches='tight')
+plt.ylabel('Percentage of wrong read mapping')
+plt.title('minichain                                    minigraph                            GraphAligner                        GraphChainer', y=-0.35)
+plt.savefig("compare_error.jpg",dpi=300,bbox_inches='tight')
+
+

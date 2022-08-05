@@ -30,12 +30,12 @@ echo "Mapping reads with GraphChainer..."
 /usr/bin/time -v ./bin/GraphChainer -t32 -g CHM13Y_80H.gfa -f Reads/CHM13_reads_5%.fa  -a Results/GraphChainer/CHM13Y_80H_5%.gaf
 /usr/bin/time -v ./bin/GraphChainer -t32 -g CHM13Y_60H.gfa -f Reads/CHM13_reads_5%.fa  -a Results/GraphChainer/CHM13Y_60H_5%.gaf
 /usr/bin/time -v ./bin/GraphChainer -t32 -g CHM13Y_40H.gfa -f Reads/CHM13_reads_5%.fa  -a Results/GraphChainer/CHM13Y_40H_5%.gaf
-/usr/bin/time -v ./bin/GraphChainer -t32 -g CHM13Y_20H.gfa -f Reads/CHM13_reads_5%.fa  -a Results/GraphChainer/CHM13Y_20H_5%.gaf
 /usr/bin/time -v ./bin/GraphChainer -t32 -g CHM13Y_10H.gfa -f Reads/CHM13_reads_5%.fa  -a Results/GraphChainer/CHM13Y_10H_5%.gaf
+/usr/bin/time -v ./bin/GraphChainer -t32 -g CHM13Y_20H.gfa -f Reads/CHM13_reads_5%.fa  -a Results/GraphChainer/CHM13Y_20H_5%.gaf
 ./k8 mgutils.js stableGaf CHM13Y_10H.gfa Results/GraphChainer/CHM13Y_10H_5%.gaf > Results/GraphChainer/CHM13Y_10H_5%_stable.gaf
-./k8 mgutils.js stableGaf CHM13Y_20H.gfa Results/GraphChainer/CHM13Y_10H_5%.gaf > Results/GraphChainer/CHM13Y_20H_5%_stable.gaf
 ./k8 mgutils.js stableGaf CHM13Y_40H.gfa Results/GraphChainer/CHM13Y_10H_5%.gaf > Results/GraphChainer/CHM13Y_40H_5%_stable.gaf
 ./k8 mgutils.js stableGaf CHM13Y_60H.gfa Results/GraphChainer/CHM13Y_10H_5%.gaf > Results/GraphChainer/CHM13Y_60H_5%_stable.gaf
 ./k8 mgutils.js stableGaf CHM13Y_80H.gfa Results/GraphChainer/CHM13Y_10H_5%.gaf > Results/GraphChainer/CHM13Y_80H_5%_stable.gaf
 ./k8 mgutils.js stableGaf CHM13Y_95H.gfa Results/GraphChainer/CHM13Y_95H_5%.gaf > Results/GraphChainer/CHM13Y_95H_5%_stable.gaf
+./k8 mgutils.js stableGaf CHM13Y_20H.gfa Results/GraphChainer/CHM13Y_10H_5%.gaf > Results/GraphChainer/CHM13Y_20H_5%_stable.gaf
 echo "Mapped reads to graphs"
