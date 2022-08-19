@@ -36,9 +36,9 @@ for tool in tools:
     wrong_path = []
     read_count = []
     for graph in graphs:
-        gfa_ = tool+"/wrong_mappings_"+graph+".gaf"
+        gaf_ = tool+"/wrong_mappings_"+graph+".gaf"
         wrong_gaf = []
-        with open(gfa_) as file:
+        with open(gaf_) as file:
             for line in file:
                 wrong_gaf.append(line)
         count_ = tool+"/count_mappings_"+graph+".gaf"
