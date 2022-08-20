@@ -1,6 +1,8 @@
+#!/usr/bin/python3
+
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.ticker import EngFormatter, StrMethodFormatter
+from matplotlib.ticker import StrMethodFormatter
 import matplotlib
 import numpy as np
 import re
@@ -77,30 +79,30 @@ fig, ax = plt.subplots()
 ##################### wrong region #############
 i = 0
 for tool in tools:
-    ax.bar(X_axis + i*len(X_axis) + i,wrong_region[tool],zorder=3,color='blue')
+    ax.bar(X_axis + i*len(X_axis) + i,wrong_region[tool],zorder=3,color='tab:blue')
     i = i+1
 ##################### correct region ###########
 i = 0
 for tool in tools:
-    ax.bar(X_axis + i*len(X_axis) + i ,correct_region[tool],zorder=3,color='orange')
+    ax.bar(X_axis + i*len(X_axis) + i ,correct_region[tool],zorder=3,color='tab:orange')
     i = i+1
 
 ##################### labeles ################
-blue_patch = mpatches.Patch(color='blue', label='wrong region')
-orange_patch = mpatches.Patch(color='orange', label='correct region')
+blue_patch = mpatches.Patch(color='tab:blue', label='Wrong region')
+orange_patch = mpatches.Patch(color='tab:orange', label='Correct region')
 plt.legend(handles=[blue_patch, orange_patch])
-fig.set_size_inches(12, 4, forward=True)
+fig.set_size_inches(12, 3, forward=True)
 ax.yaxis.set_major_formatter(StrMethodFormatter(u"{x:.1f}%"))
 fig.autofmt_xdate()
 plt.xticks(range(len(graphs_)),graphs_)
 #plt.grid(zorder=0)
-plt.text(0, 3.5, 'minichain', 
+plt.text(0, 3.3, 'Minichain',
         fontsize = 11, color = 'black')
-plt.text(5.5, 3.5, 'minigraph', 
+plt.text(5.5, 3.3, 'Minigraph',
         fontsize = 11, color = 'black')
-plt.text(10.5, 3.5, 'GraphAligner', 
+plt.text(10.5, 3.3, 'GraphAligner',
         fontsize = 11, color = 'black')
-plt.text(16.5, 3.5, 'GraphChainer', 
+plt.text(16.5, 3.3, 'GraphChainer',
         fontsize = 11, color = 'black')
 plt.gca().yaxis.grid(True)
 plt.rc('axes', labelsize=11)
@@ -109,5 +111,5 @@ plt.rc('ytick', labelsize=11)
 matplotlib.rc('font', size=11)
 matplotlib.rc('axes', titlesize=11)
 plt.xlabel('Graphs')
-plt.ylabel('Percentage of wrong read mapping')
-plt.savefig("compare_error.jpg",dpi=300,bbox_inches='tight')
+plt.ylabel('Incorrectly aligned reads')
+plt.savefig("compare_error.pdf",bbox_inches='tight',format='pdf')
