@@ -13,8 +13,8 @@ set pointsize 2.0
 
 set key font ",32"
 
-set xlab "{/*1.5 Error rate of mapped PacBio reads}"
-set ylab "{/*1.5 Fraction of mapped reads}" off +0.6
+set xlab "{/*1.5 Incorrectly aligned reads}"
+set ylab "{/*1.5 Aligned reads}" off +0.6
 set ytics 0.02
 set yran [0.9:1.0005]
 
@@ -25,8 +25,8 @@ set xrange [:0.1]
 set log x
 set format x "10^{%L}"
 set key bot right
-plot "<./eval2roc.pl minichain_95H.eval" u 2:3 t "minichain" w lp ls 1, \
-     "<./eval2roc.pl minigraph_95H.eval" u 2:3 t "minigraph" w lp ls 2, \
+plot "<./eval2roc.pl minichain_95H.eval" u 2:3 t "Minichain" w lp ls 1, \
+     "<./eval2roc.pl minigraph_95H.eval" u 2:3 t "Minigraph" w lp ls 2, \
      "<./eval2roc.pl GraphAligner_95H.eval" u 2:3 t "GraphAligner" w lp ls 3, \
-     "<./eval2roc.pl GraphChainer_95H.eval" u 2:3 t "GraphChainer" w lp ls 4
+     "<./eval2roc.pl GraphChainer_95H.eval" u 2:3 t "GraphChainer" w lp ls 4,
 unset label
