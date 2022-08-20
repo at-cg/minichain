@@ -13,13 +13,14 @@ my $err = $pseudo;
 my $tot_last_out = -$opts{s};
 my $state = 0;
 my $mapq = 0;
+my $scale = 100;
 while (<>) {
 	chomp;
 	if (/^Q\t(\d+)\t(\d+)\t(\d+)/) {
 		$tot += $2;
 		$err += $3;
 		if ($tot - $tot_last_out >= $opts{s}) {
-			print join("\t", $1, $err/$tot, $tot / $opts{n}), "\n";
+			print join("\t", $1, $scale*$err/$tot, $scale*$tot / $opts{n}), "\n";
 			$tot_last_out = $tot;
 			$state = 0;
 		} else {
@@ -29,5 +30,5 @@ while (<>) {
 	}
 }
 if ($state) {
-	print join("\t", $mapq, $err/$tot, $tot / $opts{n}), "\n";
+	print join("\t", $mapq, $scale*$err/$tot , $scale*($tot / $opts{n})), "\n";
 }

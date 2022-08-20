@@ -12,23 +12,27 @@ set out "Linear.eps"
 set pointsize 2.0
 
 set key font ",32"
+set key at graph 1.01, 0.025
 
 set xlab "{/*1.5 Incorrectly aligned reads}"
-set ylab "{/*1.5 Aligned reads}" off +0.6
-set ytics 0.02
-set yran [0.9:1.0005]
+set ylab "{/*1.5 Aligned reads}" off -0.5
+set ytics 2
+#set xtics 1.0
+set yran [90:100.05]
+set rmargin 4
 
 set xtics font ", 35"
 set ytics font ", 35"
 
 
-set xrange [:0.1]
+set xrange [:10]
 set log x
-set format x "10^{%L}"
+#set format x "10^{%L}"
+set format x "%.02f%%"
+set format y "%.0f%%"
 set key bot right
 plot "<./eval2roc.pl minichain.eval" u 2:3 t "Minichain" w lp ls 1, \
      "<./eval2roc.pl minigraph.eval" u 2:3 t "Minigraph" w lp ls 2, \
      "<./eval2roc.pl GraphAligner.eval" u 2:3 t "GraphAligner" w lp ls 3, \
      "<./eval2roc.pl GraphChainer.eval" u 2:3 t "GraphChainer" w lp ls 4
-
 unset label
