@@ -54,6 +54,6 @@ Reference: [The design and construction of reference pangenome graphs with minig
 [paper]: https://doi.org/10.1186/s13059-020-02168-z
 [minigraph]: https://github.com/lh3/minigraph
 [zlib]: http://zlib.net/
-[gcc9]: http://zlib.net/
+[gcc9]: [http://zlib.net/](https://gcc.gnu.org/)
 [rgfa]: https://github.com/lh3/gfatools/blob/master/doc/rGFA.md
 [gfa1]: https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md
