@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "[WARNING]\033[1;31m it is recommended to add -c for graph generation\033[0m\n");
 
 	if (argc == o.ind || fp_help == stdout) {
-		fprintf(fp_help, "Usage: minigraph [options] <target.gfa> <query.fa> [...]\n");
+		fprintf(fp_help, "Usage: minichain [options] <target.gfa> <query.fa> [...]\n");
 		fprintf(fp_help, "Options:\n");
 		fprintf(fp_help, "  Indexing:\n");
 		fprintf(fp_help, "    -k INT       k-mer size (no larger than 28) [%d]\n", ipt.k);
