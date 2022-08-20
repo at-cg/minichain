@@ -11,7 +11,7 @@ cd minichain && make
 
 - [Getting Started](#started)
 - [Introduction](#intro)
-- [Users' Guide](#uguide)
+- [User's Guide](#uguide)
   - [Installation](#install)
   - [Sequence mapping](#map)
 - [Future work](#future_work)
@@ -22,7 +22,7 @@ cd minichain && make
 minichain is a sequence-to-DAG mapper, which utilises gap sensetive co-linear chaining heuristic to align long reads to DAG. \
 minichain is scalable to Pangenome graphs generated with whole-genome human haplotypes and can map reads within reasonable runtime and memory limits.
 
-## <a name="uguide"></a>Users' Guide
+## <a name="uguide"></a>User's Guide
 
 ### <a name="install"></a>Installation
 
