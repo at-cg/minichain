@@ -23,6 +23,7 @@ set yran [90:100.05]
 set xtics font ", 35"
 set ytics font ", 35"
 set rmargin 3.5
+set bmargin 3.5
 
 set xrange [:10]
 set log x

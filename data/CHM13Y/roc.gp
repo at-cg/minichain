@@ -20,6 +20,7 @@ set ytics 2
 #set xtics 1.0
 set yran [90:100.05]
 set rmargin 4
+set bmargin 3.5
 
 set xtics font ", 35"
 set ytics font ", 35"
