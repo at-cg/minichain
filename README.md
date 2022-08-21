@@ -19,7 +19,7 @@ cd minichain && make
 
 ## <a name="intro"></a>Introduction
 
-minichain is a sequence-to-DAG mapper, which utilises gap sensitive co-linear chaining heuristic to align long reads to DAG. \
+minichain is a sequence-to-DAG mapper, which utilises gap-sensitive co-linear chaining heuristic to align long reads to DAG. \
 minichain is scalable to Pangenome graphs generated with whole-genome human haplotypes and can map reads within reasonable runtime and memory limits.
 
 ## <a name="uguide"></a>User's Guide
