@@ -74,6 +74,7 @@ typedef struct {
 	int ref_bonus;
 	int64_t cap_kalloc;
 	int min_cov_mapq, min_cov_blen;
+	float tau_1, tau_2;
 } mg_mapopt_t;
 
 typedef struct {

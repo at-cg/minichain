@@ -43,6 +43,10 @@ void mg_mapopt_init(mg_mapopt_t *mo)
 	mo->min_cov_mapq = 20;
 	mo->min_cov_blen = 1000;
 	mo->cap_kalloc = 1000000000;
+	// tau_1 : threshold to compute "intra cid" disjoint set of chains
+	mo->tau_1 = 0.99;
+	// tau_2 : threshold to pick "inter cid" set of chains
+	mo->tau_2 = 0.95; 
 }
 
 void mg_ggopt_init(mg_ggopt_t *go)
@@ -83,6 +87,10 @@ int mg_opt_set(const char *preset, mg_idxopt_t *io, mg_mapopt_t *mo, mg_ggopt_t 
 		mo->max_lc_skip = mo->max_gc_skip = 50;
 		mo->div = 0.01f;
 		mo->mini_batch_size = 4000000000LL;
+		// tau_1 : threshold to compute "intra cid" disjoint set of chains
+		mo->tau_1 = 0.99;
+		// tau_2 : threshold to pick "inter cid" set of chains
+		mo->tau_2 = 0.95; 
 		if (strcmp(preset, "ggs") == 0)
 			go->algo = MG_G_GGSIMPLE, mo->best_n = 0;
 	} else if (strcmp(preset, "se") == 0 || strcmp(preset, "sr") == 0) {
@@ -100,6 +108,10 @@ int mg_opt_set(const char *preset, mg_idxopt_t *io, mg_mapopt_t *mo, mg_ggopt_t 
 		mo->min_cov_blen = 50;
 		mo->chn_pen_gap = 0.2f;
 		mo->ref_bonus = 1;
+		// tau_1 : threshold to compute "intra cid" disjoint set of chains
+		mo->tau_1 = 0.99;
+		// tau_2 : threshold to pick "inter cid" set of chains
+		mo->tau_2 = 0.95;
 		if (strcmp(preset, "sr") == 0) {
 			mo->flag |= MG_M_FRAG_MODE | MG_M_FRAG_MERGE;
 			mo->pe_ori = 0<<1|1; // FR

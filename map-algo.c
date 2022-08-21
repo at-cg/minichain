@@ -401,6 +401,8 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 		anchor[i] = anchor_[i];
 	}
 	/* Chaining */
+	graphOp->tau_1 = opt->tau_1;
+	graphOp->tau_2 = opt->tau_2;
 	std::vector<mg128_t> best = graphOp->Chaining(anchor);
 	kfree(b->km, a);
 	KMALLOC(b->km, a, best.size());

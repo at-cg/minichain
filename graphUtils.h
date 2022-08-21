@@ -101,6 +101,10 @@ class graphUtils
 	bool param_z;
 	int lin_ref = 0;
 
+	// tau_1 : intra and tau_2 : inter
+	float tau_1;
+	float tau_2;
+
   
     graphUtils(gfa_t *g); // This is constructor
 

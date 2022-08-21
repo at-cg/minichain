@@ -910,7 +910,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
 
             std::pair<int64_t, int> best_temp;
             std::vector<bool> visited(N,false);
-            float tau = 0.99;
+            float tau = tau_1;
             int64_t threshold = tau*(float)best_.first;
             int64_t score = best_.first;
             while (score >= threshold)
@@ -989,7 +989,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     }
 
     // Now compute Threshold
-    float tau = 0.95;
+    float tau = tau_2;
     int64_t threshold = tau*(float)best_chain_score;
 
     // Now pick all the chains from all the cid which satisfies threshold
