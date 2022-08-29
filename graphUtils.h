@@ -88,7 +88,7 @@ class graphUtils
 	std::vector<std::vector<std::vector<int>>> rev_index; // rev_index
 	std::vector<std::vector<std::vector<int>>> last2reach; // last2reach
 	std::vector<std::vector<std::vector<int64_t>>> dist2begin; // dist2begin
-	std::vector<std::vector<std::vector<int64_t>>> Distance; // dist2begin
+	std::vector<std::vector<std::vector<int64_t>>> Distance; // Distance
 	std::vector<std::vector<int>> component_idx;         // mapping between origional index and local index
 	std::vector<std::vector<int>> idx_component;         // mapping between local index and origional index
 	std::vector<std::vector<std::vector<int>>> path_cover; // Path Cover
@@ -101,7 +101,7 @@ class graphUtils
 	bool param_z;
 	int lin_ref = 0;
 
-	// tau_1 : intra and tau_2 : inter
+	// tau_1 : intra cid threshold, and tau_2 : inter cid threshold.
 	float tau_1;
 	float tau_2;
 
