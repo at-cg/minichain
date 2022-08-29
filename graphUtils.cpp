@@ -183,7 +183,7 @@ void graphUtils::Connected_components()
 }
 
 
-int graphUtils::is_cyclic() // Check cyclicity of component and convert to acyclic graph iff component has cycles.
+int graphUtils::is_cyclic() // Check cyclicity of component.
 
 {
     // construct
@@ -315,7 +315,7 @@ void graphUtils::topologicat_sort()
         // verify component is acyclic
         if (count != adj_cc[cid].size())
         {
-            std::cout << " Can't do Topological ordering : cycle exist " << std::endl; // Just to make sure in case boost has failed to compute cycles
+            std::cout << " Can't do Topological ordering : cycle exist " << std::endl; 
         }
         // std::cerr << " Top sort for cid : " << cid << std::endl;
         // for (size_t i = 0; i < top_order[cid].size(); i++)
@@ -710,7 +710,7 @@ void graphUtils::MPC_index()
             }
         }
 
-        // Correct Distanec for which las2reach = -1
+        // Correct Distance for which las2reach = -1
         for (int k = 0; k < K; k++)
         {
             for (size_t v = 0; v < N; v++)
@@ -865,7 +865,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             C[j] = {cost , -1};
         }
 
-        /* Erase redundant and Sort the Tuples by T.v, T.pos, T.task */ 
+        /* Erase redundant Tuples and Sort the Tuples by T.v, T.pos, T.task */ 
         T.erase( std::unique( T.begin(), T.end(), compare_dups ), T.end() );
         std::sort(T.begin(),T.end(),compare_T);
 
@@ -883,7 +883,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 }
                 if (param_z)
                 {
-                    std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
+                    std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distance : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
                 }
             }else
             {
@@ -945,7 +945,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     }
                 }
 
-                // Push to Union of All Anchors iff the sets are disjoint
+                // Push to union of all the anchors iff the set of anchors (chains) are disjoint
                 if (flag == false)
                 {
                     for (int i = 0; i < temp2_.size(); i++)
@@ -988,7 +988,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         }
     }
 
-    // Now compute Threshold
+    // Now compute threshold
     float tau = tau_2;
     int64_t threshold = tau*(float)best_chain_score;
 
@@ -1015,7 +1015,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
 
     std::reverse(best.begin(),best.end());
 
-    /* Count the frequency of an anchor within the node, If the frequency is <5, then discard the anchor */
+    /* Count the frequency of an anchor within the node, if the frequency is <5, then discard the anchors */
     std::map<int,int> freq;
 
     /* Initialise to 0 */
@@ -1068,6 +1068,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         std::cerr << " Number of Best Anchors : " << best.size() << "\n";
     }
 
-   return best;
+   return best; // return union of all the disjoint set of chains
 
 }
