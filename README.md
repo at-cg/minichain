@@ -55,3 +55,11 @@ We plan to continue adding features in future releases.
 ## <a name="pub"></a>Publications
 
 - **Ghanshyam Chandra and Chirag Jain**. "[Sequence to graph alignment using gap-sensitive co-linear chaining](https://doi.org)". *BioRxiv*, 2022.
+
+[gwfa]: https://arxiv.org/abs/2206.13574
+[paper]: https://doi.org/10.1186/s13059-020-02168-z
+[minigraph]: https://github.com/lh3/minigraph
+[zlib]: http://zlib.net/
+[gcc9]: https://gcc.gnu.org/
+[rgfa]: https://github.com/lh3/gfatools/blob/master/doc/rGFA.md
+[gfa1]: https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md
