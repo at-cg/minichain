@@ -20,7 +20,7 @@ cd minichain && make
 
 ## <a name="intro"></a>Introduction
 
-Minichain is designed to align long reads to pangenome graphs represented as DAGs. It can scale to pangenomes built from several human genome assemblies. We have incorporated a provably-good gap-sensitive co-linear chaining algorithm for filtering anchors (see [paper](#pub) for details). This algorithm enables accurate and fast long read alignments. Minichain uses seeding and base-to-base alignment code from [Minigraph][minigraph].
+Minichain is designed to align long reads to pangenome graphs represented as DAGs. It can scale to pangenomes built from several human genome assemblies. We have incorporated a provably-good gap-sensitive co-linear chaining algorithm for filtering anchors (see [paper](#pub) for details). This algorithm enables accurate and fast long read alignments. Minichain uses seeding and base-to-base alignment code from [minigraph][minigraph].
 
 ## <a name="uguide"></a>User's Guide
 
