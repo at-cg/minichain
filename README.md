@@ -13,7 +13,7 @@ cd minichain && make
 - [Introduction](#intro)
 - [User's Guide](#uguide)
   - [Installation](#install)
-  - [Sequence mapping](#map)
+  - [Read mapping](#map)
 - [Benchmark](#benchmark)
 - [Future work](#future_work)
 - [Publications](#pub)
