@@ -50,7 +50,7 @@ We plan to continue adding features in future releases.
 
 * Support for cyclic graphs, which can be either pangenome references or assembly graphs.
 
-* Support for chromosome-long query sequences. This is needed for incremental graph generation.
+* Support for chromosome-long query sequences. This is needed for [incremental pangenome graph construction](https://github.com/lh3/minigraph/blob/master/doc/example1.png).
 
 ## <a name="pub"></a>Publications
 
