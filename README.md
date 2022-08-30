@@ -31,7 +31,7 @@ Minichain is designed to align long reads to pangenome graphs represented as DAG
 2) [zlib][zlib]
 
 
-### <a name="map"></a>Sequence mapping
+### <a name="map"></a>Read mapping
 Minichain can be used for both sequence-to-sequence alignment as well as sequence-to-graph alignment. A graph should be provided in either [GFA][gfa1] or [rGFA][rgfa]format. Users can run quick tests on [sample data](data/) using the following commands. The alignment output is provided in [PAF](https://github.com/lh3/miniasm/blob/master/PAF.md) or [GAF](https://github.com/lh3/gfatools/blob/master/doc/rGFA.md#the-graph-alignment-format-gaf) format respectively.
 ```sh
 # Map sequence to sequence
