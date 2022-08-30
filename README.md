@@ -41,7 +41,7 @@ Minichain can be used for both sequence-to-sequence alignment as well as sequenc
 ```
 
 ## <a name="bench"></a>Benchmark
-We have compared Minichain (v1.0) with existing sequence to graph aligners to demonstrate scalability and accuracy gains. Our experiments used human pangenome graphs built by using subsets of [94 high quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) provided by the Human Pangenome Reference Consortium, and [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) provided by the Telomere-to-Telomere consortium. Using a simulated long read dataset with 0.5x coverage, and graphs of three different sizes, we see superior read mapping precision. For the largest DAG from 95 haplotypes, Minichain used 24 minutes and 25 GB RAM with 32 threads.
+We have compared Minichain (v1.0) with existing sequence to graph aligners to demonstrate scalability and accuracy gains. Our experiments used human pangenome DAGs built by using subsets of [94 high quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) provided by the Human Pangenome Reference Consortium, and [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) provided by the Telomere-to-Telomere consortium. Using a simulated long read dataset with 0.5x coverage, and DAGs of three different sizes, we see superior read mapping precision. For the largest DAG constructed from all 95 haplotypes, Minichain used 24 minutes and 25 GB RAM with 32 threads.
 
 <img src="./data/plot.png" width="700">
 
