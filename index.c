@@ -211,11 +211,12 @@ mg_idx_t *mg_index_core(gfa_t *g, int k, int w, int b, int n_threads)
 
 /* Pass parameters */
 params* par;
-void pass_par(bool &param_z, float &scale_factor)
+void pass_par(bool &param_z, float &scale_factor, int &G)
 {
 	par = new params();
 	par->param_z = param_z;
 	par->scale_factor = scale_factor; 
+	par->G = G;
 }
 
 mg_idx_t *mg_index(gfa_t *g, const mg_idxopt_t *io, int n_threads, mg_mapopt_t *mo)
@@ -235,9 +236,10 @@ mg_idx_t *mg_index(gfa_t *g, const mg_idxopt_t *io, int n_threads, mg_mapopt_t *
 	/* Indexing */
 	graphUtils *graphOp = new graphUtils(g);
 	graphOp->param_z = par->param_z;
+	graphOp->G = par->G;
 	graphOp->read_graph();
-	omp_set_dynamic(0);
-	omp_set_num_threads(n_threads);
+	omp_set_dynamic(1);
+	omp_set_num_threads(0);
 	graphOp->scale_factor = par->scale_factor;
 	// graphOp->print_graph();
 	graphOp->Connected_components();

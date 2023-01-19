@@ -403,6 +403,7 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 	/* Chaining */
 	graphOp->tau_1 = opt->tau_1;
 	graphOp->tau_2 = opt->tau_2;
+	graphOp->is_ggen = opt->is_ggen;
 	std::vector<mg128_t> best = graphOp->Chaining(anchor);
 	kfree(b->km, a);
 	KMALLOC(b->km, a, best.size());
@@ -413,6 +414,7 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 	n_a = best.size();
 	/* clear anchors */
 	anchor.clear();
+
 
 	// set max chaining gap on the query and the reference sequence
 	if (is_sr)
@@ -434,7 +436,7 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 		if (a) kfree(b->km, a);
 		a = 0, n_lc = 0, u = 0;
 	} else {
-		if (opt->flag & MG_M_RMQ) {
+		if (opt->flag & MG_M_RMQ && false) { // && false to disable RMQ
 			a = mg_lchain_rmq(opt->max_gap, opt->max_gap_pre, opt->bw, opt->max_lc_skip, opt->rmq_size_cap, opt->min_lc_cnt, opt->min_lc_score,
 							  opt->l_chn_pen_gap, opt->l_chn_pen_skip, n_a, a, &n_lc, &u, b->km);
 		} else {

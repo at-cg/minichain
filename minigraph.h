@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include "gfa.h"
 
-#define MG_VERSION "1.0"
+#define MG_VERSION "0.20-r559"
+#define MC_VERSION "1.1"
 
 #define MG_M_SPLICE       0x10
 #define MG_M_SR           0x20
@@ -41,6 +42,7 @@
 typedef struct { uint64_t x, y; } mg128_t;
 typedef struct { size_t n, m; mg128_t *a; } mg128_v;
 typedef struct { int32_t n, m; uint32_t *a; } mg32_v;
+typedef struct { int32_t n, m; uint64_t *a; } mg64_v;
 
 typedef struct {
 	int w, k;
@@ -63,6 +65,7 @@ typedef struct {
 	float div;
 	float chn_pen_gap, chn_pen_skip;
 	float l_chn_pen_gap, l_chn_pen_skip;
+	float tau_1, tau_2;
 	int max_lc_skip, max_lc_iter, max_gc_skip;
 	int min_lc_cnt, min_lc_score;
 	int min_gc_cnt, min_gc_score;
@@ -74,7 +77,7 @@ typedef struct {
 	int ref_bonus;
 	int64_t cap_kalloc;
 	int min_cov_mapq, min_cov_blen;
-	float tau_1, tau_2;
+	bool is_ggen;
 } mg_mapopt_t;
 
 typedef struct {
@@ -115,7 +118,7 @@ typedef struct {
 
 typedef struct {
 	int32_t n_cigar, mlen, blen, aplen, ss, ee; // ss: start on the start vertex; ee: end on the end vertex
-	uint32_t cigar[];
+	uint64_t cigar[];
 } mg_cigar_t;
 
 typedef struct {

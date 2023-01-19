@@ -98,13 +98,14 @@ static inline void yes_or_no(uint64_t *flag_, uint64_t f, int long_idx, const ch
 
 int main(int argc, char *argv[])
 {
-	const char *opt_str = "s:z:x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:DSc";
+	const char *opt_str = "G:a:s:z:x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:DSc";
 	ketopt_t o = KETOPT_INIT;
 	mg_mapopt_t opt;
 	mg_idxopt_t ipt;
 	mg_ggopt_t gpt;
 	int i, c, ret, n_threads = 4;
-	float scale_factor = 200;
+	float scale_factor = 200.0f;
+	int G = 10000;
 	bool z = false;
 	char *s;
 	FILE *fp_help = stderr;
@@ -137,6 +138,7 @@ int main(int argc, char *argv[])
 		else if (c == 't') n_threads = atoi(o.arg);
 		else if (c == 's') scale_factor = atof(o.arg);
 		else if (c == 'z') z = atoi(o.arg);
+		else if (c == 'G') G = atoi(o.arg);
 		else if (c == 'f') opt.occ_max1_frac = atof(o.arg);
 		else if (c == 'g') opt.max_gap = mm_parse_num(o.arg);
 		else if (c == 'F') opt.max_frag_len = mm_parse_num(o.arg);
@@ -223,7 +225,7 @@ int main(int argc, char *argv[])
 		} else if (c == 325) { // --inv
 			yes_or_no(&gpt.flag, MG_G_NO_INV, o.longidx, o.arg, 0);
 		} else if (c == 300) { // --version
-			puts(MG_VERSION);
+			puts(MC_VERSION);
 			return 0;
 		}
 	}
@@ -260,8 +262,9 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    --call       call the graph path in each bubble and output BED\n");
 		fprintf(fp_help, "  Input/output:\n");
 		fprintf(fp_help, "    -t INT       number of threads [%d]\n", n_threads);
-		fprintf(fp_help, "    -s float     scale factor [%f]\n", scale_factor);
-		fprintf(fp_help, "    -z bool       debug_chain [%d]\n", z);
+		fprintf(fp_help, "    -s FLOAT     scale factor [%f]\n", scale_factor);
+		fprintf(fp_help, "    -z BOOL      debug_chain [%d]\n", z);
+		fprintf(fp_help, "    -G INT       Gap [%d]\n", G);
 		fprintf(fp_help, "    -o FILE      output mappings to FILE [stdout]\n");
 		fprintf(fp_help, "    -K NUM       minibatch size for mapping [500M]\n");
 		fprintf(fp_help, "    -S           output linear chains in * sName sLen nMz div sStart sEnd qStart qEnd\n");
@@ -277,7 +280,7 @@ int main(int argc, char *argv[])
 
 	// Pass parameters to index.c
 	// std::cerr << " Param_z : " << z << " Scale_factor : " << scale_factor << std::endl;
-	pass_par(z,scale_factor);
+	pass_par(z, scale_factor, G);
 
 	g = gfa_read(argv[o.ind]);
 	if (g == 0) {
@@ -304,7 +307,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (mg_verbose >= 3) {
-		fprintf(stderr, "[M::%s] Version: %s\n", __func__, MG_VERSION);
+		fprintf(stderr, "[M::%s] Version: %s\n", __func__, MC_VERSION);
 		fprintf(stderr, "[M::%s] CMD:", __func__);
 		for (i = 0; i < argc; ++i)
 			fprintf(stderr, " %s", argv[i]);

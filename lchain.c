@@ -354,7 +354,7 @@ mg128_t *mg_lchain_rmq(int max_dist, int max_dist_inner, int bw, int max_chn_ski
 		// set max
 		assert(max_j < 0 || (a[max_j].x < a[i].x && (int32_t)a[max_j].y < (int32_t)a[i].y));
 		f[i] = max_f, p[i] = max_j;
-		v[i] = max_j >= 0 && v[max_j] > max_f? v[max_j] : max_f; // v[] keeps the peak score up to i; f[] is the score ending at i, not always the peak
+		v[i] = max_j >= 0 && v[max_j] > max_f ? v[max_j] : max_f; // v[] keeps the peak score up to i; f[] is the score ending at i, not always the peak
 		if (mmax_f < max_f) mmax_f = max_f;
 		if (max_rmq_size < krmq_size(head, root)) max_rmq_size = krmq_size(head, root);
 	}
