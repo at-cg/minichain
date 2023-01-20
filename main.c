@@ -6,7 +6,6 @@
 #include "sys.h"
 #include "ketopt.h"
 #include "graphUtils.h"
-#include <chrono> 
 #include <stdbool.h>
 
 #ifdef __linux__
@@ -278,8 +277,6 @@ int main(int argc, char *argv[])
 		return fp_help == stdout? 0 : 1;
 	}
 
-	// Pass parameters to index.c
-	// std::cerr << " Param_z : " << z << " Scale_factor : " << scale_factor << std::endl;
 	pass_par(z, scale_factor, G);
 
 	g = gfa_read(argv[o.ind]);

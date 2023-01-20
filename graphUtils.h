@@ -36,6 +36,14 @@ class AVLTree {
         return RMQ(root_, key1, key2);
     }
 
+    V RMQ_2(T key1, T key2, int64_t  sum_d_D) {
+        return RMQ_2(root_, key1, key2, sum_d_D);
+    }
+
+    V RMQ_3(T key1, T key2, int64_t  sum_d_D) {
+        return RMQ_3(root_, key1, key2, sum_d_D);
+    }
+
     void remove(T key) { root_ = remove(root_, key); }
 
     V get(T key) {
@@ -192,22 +200,38 @@ class AVLTree {
         return balance(node);
     }
 
-    // V RMQ(int node, T key1, T key2) {
+    V RMQ(int node, T key1, T key2) {
+        if (node == -1) {
+            return default_value;
+        }
+        if (key1 <= nodes_[node].key && key2 >= nodes_[node].key) {
+            V leftMax = RMQ(nodes_[node].left, key1, key2);
+            V rightMax = RMQ(nodes_[node].right, key1, key2);
+            return std::max(nodes_[node].value, std::max(leftMax, rightMax));
+          } else if (key1 > nodes_[node].key) {
+                return RMQ(nodes_[node].right, key1, key2);
+          } else {
+                return RMQ(nodes_[node].left, key1, key2);
+          }
+    }
+
+    // V RMQ_2(int node, T key1, T key2, int64_t sum_d_D ) {
     //     if (node == -1) {
     //         return default_value;
     //     }
-    //     if (key1 <= nodes_[node].key && key2 >= nodes_[node].key) {
-    //         V leftMax = RMQ(nodes_[node].left, key1, key2);
-    //         V rightMax = RMQ(nodes_[node].right, key1, key2);
+    //     std::pair<std::pair<int64_t, int>, int64_t> value = nodes_[node].value;
+    //     if (key1 <= nodes_[node].key && key2 >= nodes_[node].key && value.second >= sum_d_D) {
+    //         V leftMax = RMQ_2(nodes_[node].left, key1, key2, sum_d_D);
+    //         V rightMax = RMQ_2(nodes_[node].right, key1, key2, sum_d_D);
     //         return std::max(nodes_[node].value, std::max(leftMax, rightMax));
     //       } else if (key1 > nodes_[node].key) {
-    //             return RMQ(nodes_[node].right, key1, key2);
+    //             return RMQ_2(nodes_[node].right, key1, key2, sum_d_D);
     //       } else {
-    //             return RMQ(nodes_[node].left, key1, key2);
+    //             return RMQ_2(nodes_[node].left, key1, key2, sum_d_D);
     //       }
     // }
 
-    V RMQ(int node, T key1, T key2) {
+    V RMQ_3(int node, T key1, T key2, int64_t sum_d_D) {
         if (node == -1) {
             return default_value;
         }
@@ -216,8 +240,9 @@ class AVLTree {
         s.push(node);
         while (!s.empty()) {
             node = s.top();
+            std::pair<std::pair<int64_t, int>, int64_t> value = nodes_[node].value;
             s.pop();
-            if (key1 <= nodes_[node].key && key2 >= nodes_[node].key) {
+            if (key1 <= nodes_[node].key && key2 >= nodes_[node].key && value.second >= sum_d_D) {
                 maxValue = std::max(maxValue, nodes_[node].value);
             }
             if (nodes_[node].left != -1 && key1 <= nodes_[node].key) {
@@ -230,9 +255,32 @@ class AVLTree {
         return maxValue;
     }
 
+    // V RMQ(int node, T key1, T key2) {
+    //     if (node == -1) {
+    //         return default_value;
+    //     }
+    //     V maxValue = default_value;
+    //     std::stack<int> s;
+    //     s.push(node);
+    //     while (!s.empty()) {
+    //         node = s.top();
+    //         s.pop();
+    //         if (key1 <= nodes_[node].key && key2 >= nodes_[node].key) {
+    //             maxValue = std::max(maxValue, nodes_[node].value);
+    //         }
+    //         if (nodes_[node].left != -1 && key1 <= nodes_[node].key) {
+    //             s.push(nodes_[node].left);
+    //         }
+    //         if (nodes_[node].right != -1 && key2 > nodes_[node].key) {
+    //             s.push(nodes_[node].right);
+    //         }
+    //     }
+    //     return maxValue;
+    // }
+
 };
 
-typedef AVLTree<std::pair<int, int>, std::pair<int64_t, int>> SearchTree;
+typedef AVLTree<std::pair<int, int>, std::pair<std::pair<int64_t, int>, int64_t>> SearchTree;
 
 
 // Anchors
@@ -254,8 +302,6 @@ struct Tuples {
 	int task;
 	int top_v;
 	int d;
-	int x;
-	int M_v;
 };
 
 

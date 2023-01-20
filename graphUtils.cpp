@@ -774,11 +774,7 @@ void graphUtils::MPC_index()
 }
 
 bool compare_T(const Tuples &a, const Tuples &b){
-    return std::tie( a.top_v , a.pos, a.task , a.M_v, a.x, a.anchor ) < std::tie( b.top_v , b.pos, b.task, b.M_v, b.x, b.anchor);
-};
-
-bool compare_dups(const Tuples &a, const Tuples &b){
-    return std::tie( a.top_v , a.pos, a.task, a.d, a.path) == std::tie( b.top_v , b.pos, b.task, b.d, b.path);
+    return std::tie( a.top_v , a.pos, a.task) < std::tie( b.top_v , b.pos, b.task);
 };
 
 std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
@@ -787,7 +783,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     {
         std::cerr << " Number of Anchors : " << anchors.size() << "\n";
     }
-    
     std::vector<mg128_t> best; // Best Anchors
     std::vector<std::vector<Anchors>> M; // Anchors
     M.resize(num_cid);
@@ -815,7 +810,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         int N = M[cid].size(); // #Anchors
         int K = path_cover[cid].size(); // #Paths
         /* Initialise Search Trees */
-        std::pair<int64_t, int> default_value = std::make_pair(std::numeric_limits<int64_t>::min(),-1);
+        std::pair<std::pair<int64_t, int> , int64_t> default_value = {{std::numeric_limits<int64_t>::min(), -1}, (int64_t)-1};
         std::vector<SearchTree> I(K, SearchTree(default_value)); // Search Tree
         /* Initialise T */
         std::vector<Tuples> T; // Tuples of Anchors
@@ -841,8 +836,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     t.v = v; // sorting purpose
                     t.w = v; // vertex in which the anchor lies.
                     t.top_v = map_top_sort[cid][v]; // Topological sorting of the vertex
-                    t.x = M[cid][j].x; // position of the anchor on a graph
-                    t.M_v = M[cid][j].v; // vertex in which the anchor lies.
                     T.push_back(t); // Add Tuple
                     // for task 1
                     t.anchor = j;
@@ -853,8 +846,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     t.v = v; 
                     t.w = v;
                     t.top_v = map_top_sort[cid][v];
-                    t.x = M[cid][j].x;
-                    t.M_v = M[cid][j].v;
                     T.push_back(t);
                 }else if (last2reach[cid][k][v] != -1) // v is not on the path "k" and if last2reach exist
                 {
@@ -875,8 +866,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                         t.v = w;
                         t.w = v;
                         t.top_v = map_top_sort[cid][w]; // Topological Sort
-                        t.x = M[cid][j].x;
-                        t.M_v = M[cid][j].v;
                         T.push_back(t);
                     }
                 }   
@@ -888,116 +877,57 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         // Initialize a pointer and a array.
         std::vector<int> x(K,0); // pointer for the path
         std::vector<int> rmq_coor(K,0); // current index of the anchor which lies outside the window
-        std::vector<int> x_(K,0); // pointer for the different path
         /* Erase redundant Tuples and Sort the Tuples by T.v, T.pos, T.task */ 
-        T.erase( std::unique( T.begin(), T.end(), compare_dups ), T.end() ); // Erase Duplicates
         std::sort(T.begin(),T.end(),compare_T); // Sort Tuples
-
         std::vector<std::vector<std::pair<int64_t, std::pair<int, int>>>> y_array(K); // y_array[l] = (M[cid][t.anchor].y + dist2begin[cid][t.path][t.v] , anchor)
-        std::vector<int> prev_vtx(K,0); // previous vertex
-        std::vector<bool> same_path(K,false); // same path
-        std::pair<int,int>  key; // key 
-        std::pair<int64_t,int> value; // value
         int infty_int = std::numeric_limits<int>::max();
         int64_t _infty_int64 = std::numeric_limits<int64_t>::min();
-        std::pair<int64_t,int> rmq; // rmq
-        std::vector<std::vector<std::pair<std::pair<int, int>, std::pair<int64_t, int>>>> key_value_map(K); // Array to temporary store key-value pairs
+        // std::pair<int64_t,int> rmq; // rmq
+        std::pair<std::pair<int64_t, int> , int64_t> rmq; // rmq
+        std::pair<int, int> key;
         for (auto t:T) //  Process Tuples in the Lexicographic order of (rank(v), pos, task)
         {
             if(t.task == 0) // update the score
             {
                 int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
                 int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
-                if ( index[cid][t.path][t.w] != -1 ) // Same Path
+                int64_t sum_d_D = (int64_t)(dist2begin[cid][t.path][t.v] + M[cid][t.anchor].x - G - 1);
+                for (int l = x[t.path]; l < y_array[t.path].size(); l++)
                 {
-                    for (int l = x[t.path]; l < y_array[t.path].size(); l++)
+                    if (y_array[t.path][l].first >= sum_d_D)
                     {
-                        if (y_array[t.path][l].first >= (int64_t)(dist2begin[cid][t.path][t.v] + M[cid][t.anchor].x - G - 1))
-                        {
-                            rmq_coor[t.path] = l;
-                            break;
-                        }
-                        
-                    }
-                    // delete anchors from search tree
-                    for (int l = x[t.path]; l < rmq_coor[t.path]; l++)
-                    {
-                        key = y_array[t.path][l].second;
-                        I[t.path].remove(key);
+                        rmq_coor[t.path] = l;
+                        break;
                     }
                     
-                    // Extend the chain
-                    rmq = I[t.path].RMQ({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int});
-                    if (rmq.first > _infty_int64)
-                    {
-                        C[t.anchor] = std::max(C[t.anchor], { rmq.first - val_1 + val_2, rmq.second });
-                    }
-
-                    // Upadte the pointer
-                    x[t.path] = rmq_coor[t.path];
-                    x_[t.path] = x[t.path];
-                    same_path[t.path] = true;
-                    prev_vtx[t.path] = t.w;
-                    
-                }else // Different path
-                {
-                    // Add the values, if you are switching the vertices on different paths
-                    // if ( switching different paths and prev_path \notin paths(curr_vertex) )
-
-                    if (same_path[t.path] == false && prev_vtx[t.path] != t.w)
-                    {
-                        // Add deleted anchors from search tree (equivalent to activate)
-                        for (int l = 0; l < key_value_map[t.path].size(); l++)
-                        {
-                            key = key_value_map[t.path][l].first;
-                            value = key_value_map[t.path][l].second;
-                            I[t.path].add(key, value);
-                        }
-                        
-                        // Update the x_[t.path] (last pointer)
-                        x_[t.path] = x[t.path];
-                        // Clear Key-value map
-                        key_value_map[t.path].clear();
-                    }
-
-                    for (int l = x_[t.path]; l < y_array[t.path].size(); l++)
-                    {
-                        if (y_array[t.path][l].first >= (int64_t)(dist2begin[cid][t.path][t.v] + M[cid][t.anchor].x + Distance[cid][t.path][t.w] - G - 1))
-                        {
-                            rmq_coor[t.path] = l; // maximum index of anchors that lies outside the window
-                            break;
-                        }
-                        
-                    }
-                    for (int l = x_[t.path]; l < rmq_coor[t.path]; l++)
-                    {
-                        key = y_array[t.path][l].second;
-                        key_value_map[t.path].push_back({key, I[t.path].get(key)});
-                        I[t.path].remove(key);
-                    }
-                    
-                    // Extend the chain
-                    rmq = I[t.path].RMQ({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int});
-                    if (rmq.first > _infty_int64)
-                    {
-                        C[t.anchor] = std::max(C[t.anchor], {rmq.first - val_1 + val_2, rmq.second});
-                    }
-
-                    // Set Previous vertex = Current vertex
-                    same_path[t.path] = false;
-                    prev_vtx[t.path] = t.w;
-                    x_[t.path] = rmq_coor[t.path];
                 }
+                // delete anchors from search tree which are not in a range of G
+                for (int l = x[t.path]; l < rmq_coor[t.path]; l++)
+                {
+                    key = y_array[t.path][l].second;
+                    I[t.path].remove(key);
+                }
+                
+                // Extend the chain
+                // rmq = I[t.path].RMQ({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int});
+                rmq = I[t.path].RMQ_3({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int}, sum_d_D);
+                if (rmq.first.first > _infty_int64)
+                {
+                    C[t.anchor] = std::max(C[t.anchor], { rmq.first.first - val_1 + val_2, rmq.first.second});
+                }
+
+                // Update the pointer
+                x[t.path] = rmq_coor[t.path];
 
                 if (param_z) // debug
                 {
-                    std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distance : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
+                    std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first.first - val_1 + val_2) << " rmq.first : " << rmq.first.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distance : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
                 }
 
             }else // update the priority of the anchor
             {
                 int64_t val_3 = (M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]); // M[i].d + M[i].y + dist2begin[v]
-                I[t.path].add({M[cid][t.anchor].d, t.anchor}, {C[t.anchor].first + val_3 , t.anchor}); // C[j].first + M[i].d + M[i].y + dist2begin[v] (priority, anchor)
+                I[t.path].add({M[cid][t.anchor].d, t.anchor}, std::make_pair(std::make_pair(C[t.anchor].first + val_3 , t.anchor), (int64_t)(M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]))); // C[j].first + M[i].d + M[i].y + dist2begin[v] (priority, anchor)
                 y_array[t.path].push_back({(int64_t)(M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]), {M[cid][t.anchor].d, t.anchor}}); // (value, key) pair
                 if (param_z) // debug
                 {
