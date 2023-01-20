@@ -879,7 +879,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         std::vector<int> rmq_coor(K,0); // current index of the anchor which lies outside the window
         /* Erase redundant Tuples and Sort the Tuples by T.v, T.pos, T.task */ 
         std::sort(T.begin(),T.end(),compare_T); // Sort Tuples
-        std::vector<std::vector<std::pair<int64_t, std::pair<int, int>>>> y_array(K); // y_array[l] = (M[cid][t.anchor].y + dist2begin[cid][t.path][t.v] , anchor)
+        std::vector<std::vector<std::pair<int64_t, std::pair<int, int>>>> path_distance(K); // path_distance[path][l] = (M[cid][t.anchor].y + dist2begin[cid][t.path][t.v] , anchor)
         int infty_int = std::numeric_limits<int>::max();
         int64_t _infty_int64 = std::numeric_limits<int64_t>::min();
         // std::pair<int64_t,int> rmq; // rmq
@@ -892,9 +892,9 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
                 int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
                 int64_t sum_d_D = (int64_t)(dist2begin[cid][t.path][t.v] + M[cid][t.anchor].x - G - 1);
-                for (int l = x[t.path]; l < y_array[t.path].size(); l++)
+                for (int l = x[t.path]; l < path_distance[t.path].size(); l++)
                 {
-                    if (y_array[t.path][l].first >= sum_d_D)
+                    if (path_distance[t.path][l].first >= sum_d_D)
                     {
                         rmq_coor[t.path] = l;
                         break;
@@ -904,7 +904,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 // delete anchors from search tree which are not in a range of G
                 for (int l = x[t.path]; l < rmq_coor[t.path]; l++)
                 {
-                    key = y_array[t.path][l].second;
+                    key = path_distance[t.path][l].second;
                     I[t.path].remove(key);
                 }
                 
@@ -928,7 +928,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             {
                 int64_t val_3 = (M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]); // M[i].d + M[i].y + dist2begin[v]
                 I[t.path].add({M[cid][t.anchor].d, t.anchor}, std::make_pair(std::make_pair(C[t.anchor].first + val_3 , t.anchor), (int64_t)(M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]))); // C[j].first + M[i].d + M[i].y + dist2begin[v] (priority, anchor)
-                y_array[t.path].push_back({(int64_t)(M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]), {M[cid][t.anchor].d, t.anchor}}); // (value, key) pair
+                path_distance[t.path].push_back({(int64_t)(M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]), {M[cid][t.anchor].d, t.anchor}}); // (value, key) pair
                 if (param_z) // debug
                 {
                     std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path << " val_3 : " << val_3  << " M.y : " << M[cid][t.anchor].y <<  " dist2begin : "  << dist2begin[cid][t.path][t.v] << " M[i].d : " << t.d << "\n"; 
