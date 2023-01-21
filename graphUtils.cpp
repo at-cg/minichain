@@ -783,6 +783,11 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     {
         std::cerr << " Number of Anchors : " << anchors.size() << "\n";
     }
+    if (is_ggen)
+    {
+        G = 5000; // graph generation
+    }
+    
     std::vector<mg128_t> best; // Best Anchors
     std::vector<std::vector<Anchors>> M; // Anchors
     M.resize(num_cid);
@@ -853,8 +858,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     w = rev_index[cid][k][w]; // index -> vertex
                     int len = node_len[component_idx[cid][w]];
                     // if first anchor exceeds distance then remove it
-                    int64_t gap = Distance[cid][k][v] + M[cid][j].x - len; // gap from last2reach node to the anchor on different node
-                    if (gap < G)
+                    int64_t gap = Distance[cid][k][v] + M[cid][j].x - len + 1; // gap from last2reach node to the anchor on different node
+                    if (gap <= G)
                     {
                         Tuples t;
                         // for task 0
@@ -891,10 +896,10 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             {
                 int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
                 int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
-                int64_t sum_d_D = (int64_t)(dist2begin[cid][t.path][t.v] + M[cid][t.anchor].x - G - 1);
+                int64_t range = (int64_t)(dist2begin[cid][t.path][t.v] + M[cid][t.anchor].x - G - 1);
                 for (int l = x[t.path]; l < path_distance[t.path].size(); l++)
                 {
-                    if (path_distance[t.path][l].first >= sum_d_D)
+                    if (path_distance[t.path][l].first > range)
                     {
                         rmq_coor[t.path] = l;
                         break;
@@ -910,7 +915,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 
                 // Extend the chain
                 // rmq = I[t.path].RMQ({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int});
-                rmq = I[t.path].RMQ_3({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int}, sum_d_D);
+                rmq = I[t.path].RMQ_3({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int}, range);
                 if (rmq.first.first > _infty_int64)
                 {
                     C[t.anchor] = std::max(C[t.anchor], { rmq.first.first - val_1 + val_2, rmq.first.second});

@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 	mg_ggopt_t gpt;
 	int i, c, ret, n_threads = 4;
 	float scale_factor = 200.0f;
-	int G = 10000;
+	int G = 10000; // read mapping
 	bool z = false;
 	char *s;
 	FILE *fp_help = stderr;
