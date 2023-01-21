@@ -783,11 +783,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     {
         std::cerr << " Number of Anchors : " << anchors.size() << "\n";
     }
-    if (is_ggen)
-    {
-        G = 5000; // graph generation
-    }
-    
+
     std::vector<mg128_t> best; // Best Anchors
     std::vector<std::vector<Anchors>> M; // Anchors
     M.resize(num_cid);
@@ -976,7 +972,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             int64_t threshold_score;
             if (is_ggen) // For graph generation
             {
-                threshold_score =  min_score; // threshold score for graph generation (at least 2 anchors with gap-cost=0)
+                // threshold_score =  min_score; // threshold score for graph generation (at least 2 anchors with gap-cost=0)
+                threshold_score = 2 * min_score; // threshold score for graph generation (at least 2 anchors with gap-cost=0)
             }else // For read mapping
             {
                 threshold_score = tau_1 * (float)max_score; // threshold score

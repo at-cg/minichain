@@ -48,6 +48,7 @@ void mg_mapopt_init(mg_mapopt_t *mo)
 	// tau_2 : threshold to pick "inter cid" set of chains
 	mo->tau_2 = 0.95; 
 	mo->is_ggen = 0;
+	mo->G = 10000; // for long read mapping
 }
 
 void mg_ggopt_init(mg_ggopt_t *go)
@@ -93,6 +94,7 @@ int mg_opt_set(const char *preset, mg_idxopt_t *io, mg_mapopt_t *mo, mg_ggopt_t 
 		// tau_2 : threshold to pick "inter cid" set of chains
 		mo->tau_2 = 0.95; 
 		mo->is_ggen = 1;
+		mo->G = 5000; // for graph generation
 		if (strcmp(preset, "ggs") == 0)
 			go->algo = MG_G_GGSIMPLE, mo->best_n = 0;
 	} else if (strcmp(preset, "se") == 0 || strcmp(preset, "sr") == 0) {

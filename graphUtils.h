@@ -242,22 +242,6 @@ class AVLTree {
         return maxValue;
     }
 
-    V RMQ_2(int node, T key1, T key2, int64_t range ) {
-        if (node == -1) {
-            return default_value;
-        }
-        std::pair<std::pair<int64_t, int>, int64_t> value = nodes_[node].value;
-        if (key1 <= nodes_[node].key && key2 >= nodes_[node].key && value.second > range) {
-            V leftMax = RMQ_2(nodes_[node].left, key1, key2, range);
-            V rightMax = RMQ_2(nodes_[node].right, key1, key2, range);
-            return std::max(nodes_[node].value, std::max(leftMax, rightMax));
-          } else if (key1 > nodes_[node].key) {
-                return RMQ_2(nodes_[node].right, key1, key2, range);
-          } else {
-                return RMQ_2(nodes_[node].left, key1, key2, range);
-          }
-    }
-
     V RMQ_3(int node, T key1, T key2, int64_t range) {
         if (node == -1) {
             return default_value;

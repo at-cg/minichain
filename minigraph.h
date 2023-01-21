@@ -78,6 +78,7 @@ typedef struct {
 	int64_t cap_kalloc;
 	int min_cov_mapq, min_cov_blen;
 	bool is_ggen;
+	int G;
 } mg_mapopt_t;
 
 typedef struct {
