@@ -883,7 +883,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         std::vector<std::vector<std::pair<int64_t, std::pair<int, int>>>> path_distance(K); // path_distance[path][l] = (M[cid][t.anchor].y + dist2begin[cid][t.path][t.v] , anchor)
         int infty_int = std::numeric_limits<int>::max();
         int64_t _infty_int64 = std::numeric_limits<int64_t>::min();
-        // std::pair<int64_t,int> rmq; // rmq
         std::pair<std::pair<int64_t, int> , int64_t> rmq; // rmq
         std::pair<int, int> key;
         for (auto t:T) //  Process Tuples in the Lexicographic order of (rank(v), pos, task)
@@ -914,14 +913,12 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     // Update the pointer
                     x[t.path] = rmq_coor[t.path];   
                 }
-                // Extend the chain
-                // rmq = I[t.path].RMQ({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int});
+                // Extend the chain by adding the current anchor
                 rmq = I[t.path].RMQ_2({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int}, range);
                 if (rmq.first.first > _infty_int64)
                 {
                     C[t.anchor] = std::max(C[t.anchor], { rmq.first.first - val_1 + val_2, rmq.first.second});
                 }
-
                 if (param_z) // debug
                 {
                     std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first.first - val_1 + val_2) << " rmq.first : " << rmq.first.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distance : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
@@ -952,13 +949,11 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             {
                 D.push_back({C[i], i}); // (score, index), index
             }
-            
             // Sort D by a pair (score, index)
             std::sort(D.begin(), D.end(), [](const std::pair<std::pair<int64_t, int>, int> &a, const std::pair<std::pair<int64_t, int>, int> &b) -> bool
             {
                 return std::tie(a.first.first, a.first.second) > std::tie(b.first.first, b.first.second); // sort by score and index
             });
-
             // Find the minimum score
             int min_score = scale_factor * (float)(M[cid][0].d - M[cid][0].c + 1); // minimum score for a contig
             // Find the maximum score
@@ -971,7 +966,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             std::pair<std::vector<mg128_t>, int64_t> chain_pair; // (chain, score)
             bool flag; // flag for disjoint chain
             int count_anchors = 0; // count anchors
-            // while (max_score >= threshold_score && count_anchors < N && max_score >  min_score ) // at most N times
             while (max_score >= threshold_score && count_anchors < N && max_score >  min_score) // at most N times
             {
                 for (int anchor_id = D[prev_idx].second; anchor_id != -1 ; anchor_id = C[anchor_id].second) // backtracking
@@ -993,9 +987,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     {
                         std::cerr << " cid  : " << cid << " idx : " << anchor_id <<  " parent : " << C[anchor_id].second  <<  " node : " << M[cid][anchor_id].v << " C[j] : " << C[anchor_id].first << " M.y : " << M[cid][anchor_id].y  <<  " M.d : " << M[cid][anchor_id].d << " size of chain :" << temp_chain.size() << " score : " << max_score << " threshold : " << threshold_score << "\n";
                     }
-
                 }
-
                 // Store the anchors if chain is disjoint and clear the keys
                 if (flag == true)
                 {
@@ -1015,12 +1007,9 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                         prev_idx = i; // update the prev_idx
                         break;
                     }
-                    
                 }
-
                 max_score = chain_rmq.first; // update the max_score
             }
-
             // push chain to chain_pair
             for (int i = 0; i < chain.size(); i++)
             {
@@ -1030,7 +1019,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             chain_pair.second = best_cid_score; // push max score to chain_pair
             best_chains[cid] = chain_pair; //   push chain_pair to best_chains
         }
-
     }
 
     // Out of all "cids" pick one which has maximum score
@@ -1045,12 +1033,9 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             max_score_ = best_chains[cid].second;
             best_cid = cid; // Update best_cid
         }
-
     }
-
     if(is_ggen){ // For graph generation
         best = best_chains[best_cid].first; // best is the chain of the best_cid
-        // Reverse the order of the elements in best
         std::reverse(best.begin(),best.end());
     }else
     {
@@ -1070,10 +1055,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 {
                     std::cerr << " Best cid : " << cid << " Chain count : " << chain_count[cid] << "\n"; 
                 }
-                
             }
         }
-
         // Now pick all the chains from best_cids
         for (auto cid:best_cids)
         {
@@ -1084,20 +1067,15 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 best.push_back(best_chains[cid].first[i]);
             }
         }
-
         // Reverse the order of the elements in best
         std::reverse(best.begin(),best.end());
-
-
         std::vector<int> red_idx;
         std::vector<int> count(node_len.size(), 0); // Initialize the count array with all 0s
-
         /* Count the frequency of each node */
         for (int i = 0; i < best.size(); i++) {
             int node = (int)(best[i].x >> 32);
             count[node]++;
         }
-
         /* Find the indices of anchors with frequency <= 5 */
         for (int i = 0; i < best.size(); i++) {
             int node = (int)(best[i].x >> 32);
@@ -1105,18 +1083,15 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 red_idx.push_back(i);
             }
         }
-
         /* Remove anchors from collected indices */
         for (int i = red_idx.size() - 1; i >= 0; i--) {
             best.erase(best.begin()+red_idx[i]);
         }
     }
-
     if (param_z)
     {
         std::cerr << " Number of Best Anchors : " << best.size() << "\n";
     }
-
    return best; // return union of all the disjoint set of chains
 
 }
