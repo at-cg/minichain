@@ -5,6 +5,7 @@
 #include "mgpriv.h"
 #include "kalloc.h"
 #include "krmq.h"
+#include <iostream>
 
 static int64_t mg_chain_bk_end(int32_t max_drop, const mg128_t *z, const int32_t *f, const int64_t *p, int32_t *t, int64_t k)
 {
@@ -266,6 +267,7 @@ mg128_t *mg_lchain_rmq(int max_dist, int max_dist_inner, int bw, int max_chn_ski
 	}
 	if (max_dist < bw) max_dist = bw;
 	if (max_dist_inner <= 0 || max_dist_inner >= max_dist) max_dist_inner = 0;
+	// custom 
 	KMALLOC(km, p, n);
 	KMALLOC(km, f, n);
 	KCALLOC(km, t, n);
@@ -354,7 +356,7 @@ mg128_t *mg_lchain_rmq(int max_dist, int max_dist_inner, int bw, int max_chn_ski
 		// set max
 		assert(max_j < 0 || (a[max_j].x < a[i].x && (int32_t)a[max_j].y < (int32_t)a[i].y));
 		f[i] = max_f, p[i] = max_j;
-		v[i] = max_j >= 0 && v[max_j] > max_f ? v[max_j] : max_f; // v[] keeps the peak score up to i; f[] is the score ending at i, not always the peak
+		v[i] = max_j >= 0 && v[max_j] > max_f? v[max_j] : max_f; // v[] keeps the peak score up to i; f[] is the score ending at i, not always the peak
 		if (mmax_f < max_f) mmax_f = max_f;
 		if (max_rmq_size < krmq_size(head, root)) max_rmq_size = krmq_size(head, root);
 	}

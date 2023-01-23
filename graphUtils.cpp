@@ -893,32 +893,34 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
                 int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
                 int64_t range = (int64_t)(dist2begin[cid][t.path][t.v] + M[cid][t.anchor].x - G - 1);
-                for (int l = x[t.path]; l < path_distance[t.path].size(); l++)
+                if (index[cid][t.path][t.v] != -1) // same path
                 {
-                    if (path_distance[t.path][l].first > range)
+                    for (int l = x[t.path]; l < path_distance[t.path].size(); l++)
                     {
-                        rmq_coor[t.path] = l;
-                        break;
+                        if (path_distance[t.path][l].first > range)
+                        {
+                            rmq_coor[t.path] = l;
+                            break;
+                        }
+                        
                     }
-                    
+                    // delete anchors from search tree which are not in a range of G
+                    for (int l = x[t.path]; l < rmq_coor[t.path]; l++)
+                    {
+                        key = path_distance[t.path][l].second;
+                        I[t.path].remove(key);
+                    }
+
+                    // Update the pointer
+                    x[t.path] = rmq_coor[t.path];   
                 }
-                // delete anchors from search tree which are not in a range of G
-                for (int l = x[t.path]; l < rmq_coor[t.path]; l++)
-                {
-                    key = path_distance[t.path][l].second;
-                    I[t.path].remove(key);
-                }
-                
                 // Extend the chain
                 // rmq = I[t.path].RMQ({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int});
-                rmq = I[t.path].RMQ_3({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int}, range);
+                rmq = I[t.path].RMQ_2({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int}, range);
                 if (rmq.first.first > _infty_int64)
                 {
                     C[t.anchor] = std::max(C[t.anchor], { rmq.first.first - val_1 + val_2, rmq.first.second});
                 }
-
-                // Update the pointer
-                x[t.path] = rmq_coor[t.path];
 
                 if (param_z) // debug
                 {
@@ -957,27 +959,14 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 return std::tie(a.first.first, a.first.second) > std::tie(b.first.first, b.first.second); // sort by score and index
             });
 
-            // // Create one-to-one mapping
-            // std::vector<int> mapping(D.size()); // In case if someone wants to experiment with the original index of anchors
-            // for (size_t i = 0; i < D.size(); i++)
-            // {
-            //     mapping[D[i].second] = i;
-            // }
-
+            // Find the minimum score
             int min_score = scale_factor * (float)(M[cid][0].d - M[cid][0].c + 1); // minimum score for a contig
             // Find the maximum score
             std::pair<int64_t, int> chain_rmq = D[0].first; // Max valur of (score, index)
             int prev_idx = 0; // index of the maximum score
             max_score = chain_rmq.first; // maximum score
             int64_t threshold_score;
-            if (is_ggen) // For graph generation
-            {
-                // threshold_score =  min_score; // threshold score for graph generation (at least 2 anchors with gap-cost=0)
-                threshold_score = 2 * min_score; // threshold score for graph generation (at least 2 anchors with gap-cost=0)
-            }else // For read mapping
-            {
-                threshold_score = tau_1 * (float)max_score; // threshold score
-            }
+            threshold_score = tau_1 * (float)max_score; // threshold score
             int64_t best_cid_score = max_score; // best score for a contig
             std::pair<std::vector<mg128_t>, int64_t> chain_pair; // (chain, score)
             bool flag; // flag for disjoint chain
@@ -1043,7 +1032,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         }
 
     }
-
 
     // Out of all "cids" pick one which has maximum score
     int64_t max_score_ = best_chains[0].second; // Initializing max_score as the score of the first cid

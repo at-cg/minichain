@@ -44,10 +44,6 @@ class AVLTree {
         return RMQ_2(root_, key1, key2, range);
     }
 
-    V RMQ_3(T key1, T key2, int64_t  range) {
-        return RMQ_3(root_, key1, key2, range);
-    }
-
     void remove(T key) { root_ = remove(root_, key); }
 
     V get(T key) {
@@ -126,36 +122,6 @@ class AVLTree {
         }
         return balance(node);
     }
-
-    // int add(int node, T key, V value) {
-    //     if (node == -1) {
-    //         nodes_.emplace_back(key, value);
-    //         return (int)nodes_.size() - 1;
-    //     }
-    //     int prev = -1, curr = node;
-    //     while (curr != -1) {
-    //         prev = curr;
-    //         if (key < nodes_[curr].key) {
-    //             curr = nodes_[curr].left;
-    //         } else if (key > nodes_[curr].key) {
-    //             curr = nodes_[curr].right;
-    //         } else {
-    //             nodes_[curr].value = std::max(nodes_[curr].value, value);
-    //             return node;
-    //         }
-    //     }
-    //     nodes_.emplace_back(key, value);
-    //     int new_node = (int)nodes_.size() - 1;
-    //     if (key < nodes_[prev].key) {
-    //         nodes_[prev].left = new_node;
-    //     } else {
-    //         nodes_[prev].right = new_node;
-    //     }
-    //     node = balance(node);
-    //     return node;
-    // }
-
-
 
     int find(int node, T key) {
         if (node == -1) {
@@ -242,7 +208,7 @@ class AVLTree {
         return maxValue;
     }
 
-    V RMQ_3(int node, T key1, T key2, int64_t range) {
+    V RMQ_2(int node, T key1, T key2, int64_t range) {
         if (node == -1) {
             return default_value;
         }
