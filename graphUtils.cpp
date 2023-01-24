@@ -891,7 +891,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             {
                 int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
                 int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
-                int64_t range = (int64_t)(dist2begin[cid][t.path][t.v] + M[cid][t.anchor].x - G - 1);
+                int64_t range = (int64_t)(dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x - G - 1);
                 if (index[cid][t.path][t.v] != -1) // same path
                 {
                     for (int l = x[t.path]; l < path_distance[t.path].size(); l++)
