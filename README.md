@@ -55,6 +55,8 @@ We have compared Minichain (v1.1) with existing sequence to graph aligners to de
 
 <img src="./data/plot.png" width="700">
 
+Minichain (v1.1) can construct a human pangenome graph. Our experiments utilized [94 high quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) from the Human Pangenome Reference Consortium and [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) from the Telomere-to-Telomere consortium. Minichain used 12 hours and 30 minutes to run and needed 300 GB of RAM along with 32 threads.
+
 ## <a name="future_work"></a>Future work
 We plan to continue adding features in future releases. 
 
