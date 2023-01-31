@@ -783,7 +783,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     {
         std::cerr << " Number of Anchors : " << anchors.size() << "\n";
     }
-
+    
     std::vector<mg128_t> best; // Best Anchors
     std::vector<std::vector<Anchors>> M; // Anchors
     M.resize(num_cid);
@@ -957,11 +957,10 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             // Find the minimum score
             int min_score = scale_factor * (float)(M[cid][0].d - M[cid][0].c + 1); // minimum score for a contig
             // Find the maximum score
-            std::pair<int64_t, int> chain_rmq = D[0].first; // Max valur of (score, index)
+            std::pair<int64_t, int> chain_rmq = D[0].first; // Max value of (score, index)
             int prev_idx = 0; // index of the maximum score
             max_score = chain_rmq.first; // maximum score
-            int64_t threshold_score;
-            threshold_score = tau_1 * (float)max_score; // threshold score
+            int64_t threshold_score = is_ggen > 0 ? tau_1*(float)min_score : tau_1*(float)max_score; // threshold score
             int64_t best_cid_score = max_score; // best score for a contig
             std::pair<std::vector<mg128_t>, int64_t> chain_pair; // (chain, score)
             bool flag; // flag for disjoint chain
@@ -989,7 +988,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     }
                 }
                 // Store the anchors if chain is disjoint and clear the keys
-                if (flag == true)
+                if (flag == true && temp_chain.size() > 3 ) // minimap2 min_cnt
                 {
                     for (int i = 0; i < temp_chain.size(); i++)
                     {
