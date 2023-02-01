@@ -77,7 +77,7 @@ int mg_opt_set(const char *preset, mg_idxopt_t *io, mg_mapopt_t *mo, mg_ggopt_t 
 		mg_ggopt_init(go);
 	} else if (strcmp(preset, "lr") == 0) { // this is the default
 	} else if (strcmp(preset, "asm") == 0 || strcmp(preset, "ggs") == 0) {
-		io->k = 17, io->w = 10;
+		io->k = 17, io->w = 11;
 		mo->flag |= MG_M_RMQ;
 		mo->occ_max1 = 10, mo->occ_max1_cap = 100;
 		mo->bw = 1000, mo->bw_long = 150000;
