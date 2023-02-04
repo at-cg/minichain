@@ -23,7 +23,7 @@ cd minichain && make
 
 ## <a name="intro"></a>Introduction
 
-Minichain is designed to align long reads to pangenome graphs represented as DAGs. It can scale to pangenomes built from several human genome assemblies. We have designed and implemented a new provably-good gap-sensitive co-linear chaining algorithm for filtering anchors (see [paper](#pub) for details). This algorithm enables accurate and fast long read alignments. Minichain uses seeding and base-to-base alignment code from [minigraph][minigraph].
+Minichain is designed to align long reads or genome assemblies to pangenome graphs represented as DAGs. It can scale to pangenomes built from several human genome assemblies. We have designed and implemented a new provably-good gap-sensitive co-linear chaining algorithm for filtering anchors (see [paper](#pub) for details). This algorithm enables accurate and fast long read alignments. Minichain borrows seeding and base-to-base alignment code from [minigraph][minigraph].
 
 ## <a name="uguide"></a>User's Guide
 
@@ -60,13 +60,13 @@ Minichain (v1.1) can construct a human pangenome graph. Our experiments utilized
 ## <a name="future_work"></a>Future work
 We plan to continue adding features in future releases. 
 
-* Support for cyclic graphs, which can be either pangenome references or assembly graphs.
+* Support for cyclic graphs, which can be either pangenome graphs or assembly graphs.
 
 <!--- * Support for chromosome-long query sequences. This is needed for [incremental pangenome graph construction (https://github.com/lh3/minigraph/blob/master/doc/example1.png). -->
 
 ## <a name="pub"></a>Publications
 
-- **Ghanshyam Chandra and Chirag Jain**. "[Sequence to graph alignment using gap-sensitive co-linear chaining](https://doi.org/10.1101/2022.08.29.505691)". *RECOMB*, 2023.
+- **Ghanshyam Chandra and Chirag Jain**. "[Sequence to graph alignment using gap-sensitive co-linear chaining](https://doi.org/10.1101/2022.08.29.505691)". *RECOMB* 2023.
 
 [minigraph]: https://github.com/lh3/minigraph
 [zlib]: http://zlib.net/
