@@ -66,7 +66,7 @@ We plan to continue adding features in future releases.
 
 ## <a name="pub"></a>Publications
 
-- **Ghanshyam Chandra and Chirag Jain**. "[Sequence to graph alignment using gap-sensitive co-linear chaining](https://doi.org/10.1101/2022.08.29.505691)". *BioRxiv*, 2022.
+- **Ghanshyam Chandra and Chirag Jain**. "[Sequence to graph alignment using gap-sensitive co-linear chaining](https://doi.org/10.1101/2022.08.29.505691)". *RECOMB*, 2023.
 
 [minigraph]: https://github.com/lh3/minigraph
 [zlib]: http://zlib.net/
