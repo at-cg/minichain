@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -f FLOAT     ignore top FLOAT fraction of repetitive minimizers [%g]\n", opt.occ_max1_frac);
 		fprintf(fp_help, "    -U INT[,INT] choose the minimizer occurrence threshold within this interval [%d,%d]\n", opt.occ_max1, opt.occ_max1_cap);
 		fprintf(fp_help, "    -j FLOAT     expected sequence divergence [%g]\n", opt.div);
-		fprintf(fp_help, "    -g NUM       stop chain enlongation if there are no minimizers in INT-bp [%d]\n", opt.max_gap);
+		fprintf(fp_help, "    -G NUM       stop chain enlongation if there are no minimizers in INT-bp [%d]\n", G);
 		fprintf(fp_help, "    -F NUM       max fragment length (effective with -xsr or in the fragment mode) [%d]\n", opt.max_frag_len);
 		fprintf(fp_help, "    -r NUM[,NUM] bandwidth for the two rounds of chaining [%d,%d]\n", opt.bw, opt.bw_long);
 		fprintf(fp_help, "    -n INT[,INT] minimal number of minimizers on a graph/linear chain [%d,%d]\n", opt.min_gc_cnt, opt.min_lc_cnt);
@@ -252,6 +252,8 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -p FLOAT     min secondary-to-primary score ratio [%g]\n", opt.pri_ratio);
 		fprintf(fp_help, "    -N INT       retain at most INT secondary mappings [%d]\n", opt.best_n);
 		fprintf(fp_help, "    -D           skip self diagonal matches\n");
+		fprintf(fp_help, "    -z BOOL      print chain information [%d]\n", z);
+		fprintf(fp_help, "    -s FLOAT     factor to scale the weight of the minimizer for chaining [%f]\n", scale_factor);
 		fprintf(fp_help, "  Graph generation:\n");
 		fprintf(fp_help, "    --ggen       perform incremental graph generation\n");
 		fprintf(fp_help, "    -q INT       min mapping quality [%d]\n", gpt.min_mapq);
@@ -261,9 +263,6 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    --call       call the graph path in each bubble and output BED\n");
 		fprintf(fp_help, "  Input/output:\n");
 		fprintf(fp_help, "    -t INT       number of threads [%d]\n", n_threads);
-		fprintf(fp_help, "    -s FLOAT     scale factor [%f]\n", scale_factor);
-		fprintf(fp_help, "    -z BOOL      debug_chain [%d]\n", z);
-		fprintf(fp_help, "    -G INT       Gap [%d]\n", G);
 		fprintf(fp_help, "    -o FILE      output mappings to FILE [stdout]\n");
 		fprintf(fp_help, "    -K NUM       minibatch size for mapping [500M]\n");
 		fprintf(fp_help, "    -S           output linear chains in * sName sLen nMz div sStart sEnd qStart qEnd\n");
