@@ -51,11 +51,17 @@ Minichain can be used for the incremental graph generation. Sequences should be 
 ```
 
 ## <a name="bench"></a>Benchmark
-We have compared Minichain (v1.1) with existing sequence to graph aligners to demonstrate scalability and accuracy gains. Our experiments used human pangenome DAGs built by using subsets of [94 high-quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) provided by the Human Pangenome Reference Consortium, and [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) provided by the Telomere-to-Telomere consortium. Using a simulated long read dataset with 0.5x coverage, and DAGs of three different sizes, we see superior read mapping precision. For the largest DAG constructed from all 95 haplotypes, Minichain used 13 minutes and 26 GB RAM with 32 threads.
+We have compared Minichain (v1.1) with existing sequence to graph aligners to demonstrate scalability and accuracy gains. Our experiments used human pangenome DAGs built by using subsets of [94 high-quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) provided by the Human Pangenome Reference Consortium, and [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) provided by the Telomere-to-Telomere consortium. Using a simulated long read dataset with 0.5x coverage, and DAGs of three different sizes, we see superior read mapping precision ([as shown in the figure](#Plot)). For the largest DAG constructed from all 95 haplotypes, Minichain used 13 minutes and 26 GB RAM with 32 threads.
 
-Real dataset: We benchmarked Minichain (v1.1) for mapping the [UL ONT](https://s3-us-west-2.amazonaws.com/human-pangenomics/working/HPRC_PLUS/HG002/raw_data/nanopore/HG002_giab_ULfastqs_guppy3.2.4.fastq.gz) reads from the Human Pangenome Reference Consortium with approximately 52X total coverage to the largest DAG constructed from all 95 haplotypes. Minichain took 17 hours and 20 minutes, utilizing 68 GB of RAM and 128 physical cores ([Perlmutter cpu node](https://docs.nersc.gov/systems/perlmutter/architecture/#cpu-nodes)) and aligned 63% of reads.
+<p align="center" id="Plot">
+  <a href="./data/plot.png">
+    <img src="./data/plot.png" width="700" alt="Plot">
+  </a>
+</p>
 
-<img src="./data/plot.png" width="700">
+Real dataset: We benchmarked Minichain (v1.1) for mapping the [UL ONT](https://s3-us-west-2.amazonaws.com/human-pangenomics/working/HPRC_PLUS/HG002/raw_data/nanopore/HG002_giab_ULfastqs_guppy3.2.4.fastq.gz) (#reads: 13589524, N50: 52464) reads from the Human Pangenome Reference Consortium with approximately 52X total coverage to the largest DAG constructed from all 95 haplotypes. Minichain took 17 hours and 20 minutes, utilizing 68 GB of RAM and 128 physical cores ([Perlmutter cpu node](https://docs.nersc.gov/systems/perlmutter/architecture/#cpu-nodes)) and aligned 86.70% of the sequencing throughput.
+
+
 
 Graph generation: Minichain (v1.1) can construct a human pangenome graph. Our experiments utilized [94 high-quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) from the Human Pangenome Reference Consortium and [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) from the Telomere-to-Telomere consortium. Minichain took XX hours and XX minutes, utilizing XX GB of RAM and 32 threads ([Cori cmem node](https://docs.nersc.gov/systems/cori-largemem/#node-features)).
 
