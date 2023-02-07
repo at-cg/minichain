@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "Options:\n");
 		fprintf(fp_help, "  Indexing:\n");
 		fprintf(fp_help, "    -k INT       k-mer size (no larger than 28) [%d]\n", ipt.k);
-		fprintf(fp_help, "    -w INT       minizer window size [%d]\n", ipt.w);
+		fprintf(fp_help, "    -w INT       minimizer window size [%d]\n", ipt.w);
 		fprintf(fp_help, "  Mapping:\n");
 		fprintf(fp_help, "    -c           perform base alignment; RECOMMENDED\n");
 		fprintf(fp_help, "    -f FLOAT     ignore top FLOAT fraction of repetitive minimizers [%g]\n", opt.occ_max1_frac);
@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -N INT       retain at most INT secondary mappings [%d]\n", opt.best_n);
 		fprintf(fp_help, "    -D           skip self diagonal matches\n");
 		fprintf(fp_help, "    -z BOOL      print chain information [%d]\n", z);
-		fprintf(fp_help, "    -s FLOAT     factor to scale the weight of the minimizer for chaining [%f]\n", scale_factor);
+		fprintf(fp_help, "    -s FLOAT     factor to scale anchor weights during chaining [%f]\n", scale_factor);
 		fprintf(fp_help, "  Graph generation:\n");
 		fprintf(fp_help, "    --ggen       perform incremental graph generation\n");
 		fprintf(fp_help, "    -q INT       min mapping quality [%d]\n", gpt.min_mapq);
