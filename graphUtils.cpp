@@ -612,7 +612,7 @@ void graphUtils::MPC()
       min = min<path_cover[cid].size()?min:path_cover[cid].size();
       max = max>path_cover[cid].size()?max:path_cover[cid].size();
   }
-  fprintf(stderr, "[M::%s] range wcc [%d-%d] \n", __func__,min,max);
+  fprintf(stderr, "[M::%s] range MPC [%d-%d] \n", __func__,min,max);
 }
 
 void graphUtils::MPC_index()
