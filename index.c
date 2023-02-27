@@ -211,11 +211,10 @@ mg_idx_t *mg_index_core(gfa_t *g, int k, int w, int b, int n_threads)
 
 /* Pass parameters */
 params* par;
-void pass_par(bool &param_z, float &scale_factor, int &G)
+void pass_par(bool &param_z, int &G)
 {
 	par = new params();
 	par->param_z = param_z;
-	par->scale_factor = scale_factor; 
 	par->G = G;
 }
 
@@ -240,7 +239,6 @@ mg_idx_t *mg_index(gfa_t *g, const mg_idxopt_t *io, int n_threads, mg_mapopt_t *
 	graphOp->read_graph();
 	omp_set_dynamic(1);
 	omp_set_num_threads(0);
-	graphOp->scale_factor = par->scale_factor;
 	// graphOp->print_graph();
 	graphOp->Connected_components();
 	int cycle_count = graphOp->is_cyclic();

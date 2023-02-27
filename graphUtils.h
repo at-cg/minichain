@@ -15,226 +15,7 @@
 #include "minigraph.h"
 #include "mgpriv.h"
 #include <omp.h>
-#include <immintrin.h>
-
-// AVL Tree
-template<typename T, typename V>
-class AVLTree {
-   public:
-    AVLTree(const V &default_value = V()) : default_value(default_value) , root_(-1) {}
-
-    void add(T key, V value) { root_ = add(root_, key, value); }
-
-    void update(T key, V value) {
-        auto node = find(root_, key);
-        if (node != -1) {
-            nodes_[node].value = value;
-        }
-    }
-
-    V RMQ(T key1, T key2) {
-        return RMQ(root_, key1, key2);
-    }
-
-    V RMQ_1(T key1, T key2) {
-        return RMQ_1(root_, key1, key2);
-    }
-
-    V RMQ_2(T key1, T key2, int64_t  range) {
-        return RMQ_2(root_, key1, key2, range);
-    }
-
-    void remove(T key) { root_ = remove(root_, key); }
-
-    V get(T key) {
-        int node = find(root_, key);
-        if (node != -1) {
-            return nodes_[node].value;
-        }
-        return default_value;
-    }
-
-   private:
-    struct Node {
-        T key;
-        V value;
-        int height;
-        int left;
-        int right;
-
-        Node(T k, V v) : key(k), value(v), height(1), left(-1), right(-1) {}
-    };
-    int root_;
-    std::vector<Node> nodes_;
-    V default_value;
-
-    int height(int node) { return node != -1 ? nodes_[node].height : 0; }
-
-    int balanceFactor(int node) { return height(nodes_[node].left) - height(nodes_[node].right); }
-
-    void updateHeight(int node) { nodes_[node].height = std::max(height(nodes_[node].left), height(nodes_[node].right)) + 1; }
-
-    int rotateRight(int node) {
-        int left = nodes_[node].left;
-        nodes_[node].left = nodes_[left].right;
-        nodes_[left].right = node;
-        updateHeight(node);
-        updateHeight(left);
-        return left;
-    }
-
-    int rotateLeft(int node) {
-        int right = nodes_[node].right;
-        nodes_[node].right = nodes_[right].left;
-        nodes_[right].left = node;
-        updateHeight(node);
-        updateHeight(right);
-        return right;
-    }
-
-    int balance(int node) {
-        updateHeight(node);
-        if (balanceFactor(node) == 2) {
-            if (balanceFactor(nodes_[node].left) < 0) {
-                nodes_[node].left = rotateLeft(nodes_[node].left);
-            }
-            return rotateRight(node);
-            } else if (balanceFactor(node) == -2) {
-            if (balanceFactor(nodes_[node].right) > 0) {
-                nodes_[node].right = rotateRight(nodes_[node].right);
-            }
-            return rotateLeft(node);
-        }
-        return node;
-    }
-
-    int add(int node, T key, V value) {
-        if (node == -1) {
-            nodes_.emplace_back(key, value);
-            return (int)nodes_.size() - 1;
-        }
-        if (key < nodes_[node].key) {
-            nodes_[node].left = add(nodes_[node].left, key, value);
-        } else if (key > nodes_[node].key) {
-            nodes_[node].right = add(nodes_[node].right, key, value);
-        } else {
-            nodes_[node].value = std::max(nodes_[node].value, value);
-        }
-        return balance(node);
-    }
-
-    int find(int node, T key) {
-        if (node == -1) {
-            return -1;
-        }
-        if (key < nodes_[node].key) {
-            return find(nodes_[node].left, key);
-        } else if (key > nodes_[node].key) {
-            return find(nodes_[node].right, key);
-        } else {
-            return node;
-        }
-    }
-
-    int findMin(int node) {
-      if (nodes_[node].left == -1) {
-          return node;
-      }
-      return findMin(nodes_[node].left);
-    }
-
-
-    int remove(int node, T key) {
-        if (node == -1) {
-            return -1;
-        }
-        if (key < nodes_[node].key) {
-            nodes_[node].left = remove(nodes_[node].left, key);
-        } else if (key > nodes_[node].key) {
-            nodes_[node].right = remove(nodes_[node].right, key);
-        } else {
-            if (nodes_[node].left == -1 && nodes_[node].right == -1) {
-                return -1;
-            }
-            if (nodes_[node].left == -1) {
-                return nodes_[node].right;
-            }
-            if (nodes_[node].right == -1) {
-                return nodes_[node].left;
-            }
-            int next = findMin(nodes_[node].right);
-            nodes_[node].key = nodes_[next].key;
-            nodes_[node].value = nodes_[next].value;
-            nodes_[node].right = remove(nodes_[node].right, nodes_[next].key);
-        }
-        return balance(node);
-    }
-
-    V RMQ(int node, T key1, T key2) {
-        if (node == -1) {
-            return default_value;
-        }
-        if (key1 <= nodes_[node].key && key2 >= nodes_[node].key) {
-            V leftMax = RMQ(nodes_[node].left, key1, key2);
-            V rightMax = RMQ(nodes_[node].right, key1, key2);
-            return std::max(nodes_[node].value, std::max(leftMax, rightMax));
-          } else if (key1 > nodes_[node].key) {
-                return RMQ(nodes_[node].right, key1, key2);
-          } else {
-                return RMQ(nodes_[node].left, key1, key2);
-          }
-    }
-
-    V RMQ_1(int node, T key1, T key2) {
-        if (node == -1) {
-            return default_value;
-        }
-        V maxValue = default_value;
-        std::stack<int> s;
-        s.push(node);
-        while (!s.empty()) {
-            node = s.top();
-            s.pop();
-            if (key1 <= nodes_[node].key && key2 >= nodes_[node].key) {
-                maxValue = std::max(maxValue, nodes_[node].value);
-            }
-            if (nodes_[node].left != -1 && key1 <= nodes_[node].key) {
-                s.push(nodes_[node].left);
-            }
-            if (nodes_[node].right != -1 && key2 > nodes_[node].key) {
-                s.push(nodes_[node].right);
-            }
-        }
-        return maxValue;
-    }
-
-    V RMQ_2(int node, T key1, T key2, int64_t range) {
-        if (node == -1) {
-            return default_value;
-        }
-        V maxValue = default_value;
-        std::stack<int> s;
-        s.push(node);
-        while (!s.empty()) {
-            node = s.top();
-            std::pair<std::pair<int64_t, int>, int64_t> value = nodes_[node].value;
-            s.pop();
-            if (key1 <= nodes_[node].key && key2 >= nodes_[node].key && value.second > range) {
-                maxValue = std::max(maxValue, nodes_[node].value);
-            }
-            if (nodes_[node].left != -1 && key1 <= nodes_[node].key) {
-                s.push(nodes_[node].left);
-            }
-            if (nodes_[node].right != -1 && key2 > nodes_[node].key) {
-                s.push(nodes_[node].right);
-            }
-        }
-        return maxValue;
-    }
-
-};
-
-typedef AVLTree<std::pair<int, int>, std::pair<std::pair<int64_t, int>, int64_t>> SearchTree;
+#include <math.h>
 
 
 // Anchors
@@ -293,7 +74,7 @@ class graphUtils
 {
 	public:
 		gfa_t * g;	// This is Graph 
-        std::vector<int> *adj_;	// This is the adjacency list
+        std::vector<std::vector<int>> adj_;	// This is the adjacency list
         std::vector<std::vector < int>> conn_comp;	// connected components
         std::vector<int> component;	// component id
         int num_comp;	// number of connected components
@@ -327,6 +108,9 @@ class graphUtils
         float tau_1;
         float tau_2;
         bool is_ggen;
+        int64_t kmer_len;
+        float div;
+        int max_itr;
 
         graphUtils(gfa_t *g);	// This is constructor
 

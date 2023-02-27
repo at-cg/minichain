@@ -7,6 +7,7 @@
 #include "ketopt.h"
 #include "graphUtils.h"
 #include <stdbool.h>
+#include <unistd.h>
 
 #ifdef __linux__
 #include <sys/resource.h>
@@ -102,9 +103,8 @@ int main(int argc, char *argv[])
 	mg_mapopt_t opt;
 	mg_idxopt_t ipt;
 	mg_ggopt_t gpt;
-	int i, c, ret, n_threads = 4;
-	float scale_factor = 200.0f;
-	int G = 10000; // read mapping
+	int i, c, ret, n_threads = sysconf(_SC_NPROCESSORS_ONLN); // get maximal threads as default
+	int G = 5000; // read mapping
 	bool z = false;
 	char *s;
 	FILE *fp_help = stderr;
@@ -135,7 +135,6 @@ int main(int argc, char *argv[])
 		if (c == 'w') ipt.w = atoi(o.arg);
 		else if (c == 'k') ipt.k = atoi(o.arg);
 		else if (c == 't') n_threads = atoi(o.arg);
-		else if (c == 's') scale_factor = atof(o.arg);
 		else if (c == 'z') z = atoi(o.arg);
 		else if (c == 'G') G = atoi(o.arg);
 		else if (c == 'f') opt.occ_max1_frac = atof(o.arg);
@@ -253,7 +252,6 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -N INT       retain at most INT secondary mappings [%d]\n", opt.best_n);
 		fprintf(fp_help, "    -D           skip self diagonal matches\n");
 		fprintf(fp_help, "    -z BOOL      print chain information [%d]\n", z);
-		fprintf(fp_help, "    -s FLOAT     factor to scale anchor weights during chaining [%f]\n", scale_factor);
 		fprintf(fp_help, "  Graph generation:\n");
 		fprintf(fp_help, "    --ggen       perform incremental graph generation\n");
 		fprintf(fp_help, "    -q INT       min mapping quality [%d]\n", gpt.min_mapq);
@@ -276,7 +274,7 @@ int main(int argc, char *argv[])
 		return fp_help == stdout? 0 : 1;
 	}
 
-	pass_par(z, scale_factor, G);
+	pass_par(z, G);
 
 	g = gfa_read(argv[o.ind]);
 	if (g == 0) {

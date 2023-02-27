@@ -28,8 +28,8 @@ void mg_mapopt_init(mg_mapopt_t *mo)
 	mo->mini_batch_size = 500000000;
 	mo->div = 0.1f;
 	mo->l_chn_pen_gap = 0.0f, mo->l_chn_pen_skip = 0.0f; // Added for linear chaining
-	mo->chn_pen_gap = 1.0f, mo->chn_pen_skip = 0.05f;
-	mo->min_lc_cnt = 2, mo->min_lc_score = 0; // mo->min_lc_cnt = 5, mo->min_lc_score = 40;
+	mo->chn_pen_gap = 0.0f, mo->chn_pen_skip = 0.00f; 
+	mo->min_lc_cnt = 6, mo->min_lc_score = 0;  
 	mo->min_gc_cnt = 5, mo->min_gc_score = 50;
 	mo->gdp_max_ed = 10000;
 	mo->lc_max_trim = 50;
@@ -44,11 +44,13 @@ void mg_mapopt_init(mg_mapopt_t *mo)
 	mo->min_cov_blen = 1000;
 	mo->cap_kalloc = 1000000000;
 	// tau_1 : threshold to compute "intra cid" disjoint set of chains
-	mo->tau_1 = 0.99;
+	mo->tau_1 = 0.99f;
 	// tau_2 : threshold to pick "inter cid" set of chains
-	mo->tau_2 = 0.95; 
+	mo->tau_2 = 0.95f; 
 	mo->is_ggen = 0;
-	mo->G = 10000; // for long read mapping
+	mo->G = 5000; // for long read mapping
+	mo->max_itr = 100;
+	
 }
 
 void mg_ggopt_init(mg_ggopt_t *go)
@@ -77,24 +79,25 @@ int mg_opt_set(const char *preset, mg_idxopt_t *io, mg_mapopt_t *mo, mg_ggopt_t 
 		mg_ggopt_init(go);
 	} else if (strcmp(preset, "lr") == 0) { // this is the default
 	} else if (strcmp(preset, "asm") == 0 || strcmp(preset, "ggs") == 0) {
-		io->k = 17, io->w = 11;
+		io->k = 19, io->w = 10;
 		mo->flag |= MG_M_RMQ;
-		mo->occ_max1 = 10, mo->occ_max1_cap = 100;
+		mo->occ_max1 = 10, mo->occ_max1_cap = 100; 
 		mo->bw = 1000, mo->bw_long = 150000;
-		mo->max_gap = 10000, mo->max_gap_pre = 1000;
-		mo->min_lc_cnt = 1, mo->min_lc_score = 0; // minigraph default: mo->min_lc_cnt = 5, mo->min_lc_score = 40;
-		mo->min_gc_cnt = 5, mo->min_gc_score = 1000;
+		mo->max_gap = 150000, mo->max_gap_pre = 1000;
+		mo->min_lc_cnt = 1, mo->min_lc_score = 0; 
+		mo->min_gc_cnt = 1, mo->min_gc_score = 1000; 
 		mo->min_cov_mapq = 5;
 		mo->min_cov_blen = 100000;
 		mo->max_lc_skip = mo->max_gc_skip = 50;
 		mo->div = 0.01f;
 		mo->mini_batch_size = 4000000000LL;
 		// tau_1 : threshold to compute "intra cid" disjoint set of chains
-		mo->tau_1 = 5.00f; // to match minimap2 defualt threshold
+		mo->tau_1 = 0.0f;
 		// tau_2 : threshold to pick "inter cid" set of chains
-		mo->tau_2 = 0.95f; 
+		mo->tau_2 = 0.0f; 
 		mo->is_ggen = 1;
-		mo->G = 5000; // for graph generation
+		mo->G = 150000; // for graph generation
+		mo->max_itr = 500; // works reasonably well
 		if (strcmp(preset, "ggs") == 0)
 			go->algo = MG_G_GGSIMPLE, mo->best_n = 0;
 	} else if (strcmp(preset, "se") == 0 || strcmp(preset, "sr") == 0) {

@@ -404,7 +404,10 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 	graphOp->tau_1 = opt->tau_1;
 	graphOp->tau_2 = opt->tau_2;
 	graphOp->is_ggen = opt->is_ggen;
-	if (graphOp->G == 10000) // No user input 
+	graphOp->kmer_len = gi->k;
+	graphOp->div = opt->div;
+	graphOp->max_itr = opt->max_itr;
+	if (graphOp->G == 5000) // No user input 
 	{
 		graphOp->G = opt->G;
 	} // else G will be passed from user input

@@ -5,7 +5,7 @@
 #include "gfa.h"
 
 #define MG_VERSION "0.20-r559"
-#define MC_VERSION "1.1"
+#define MC_VERSION "1.2"
 
 #define MG_M_SPLICE       0x10
 #define MG_M_SR           0x20
@@ -79,6 +79,7 @@ typedef struct {
 	int min_cov_mapq, min_cov_blen;
 	bool is_ggen;
 	int G;
+	int max_itr;
 } mg_mapopt_t;
 
 typedef struct {

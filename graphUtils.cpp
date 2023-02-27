@@ -13,8 +13,7 @@ void graphUtils::read_graph()
     n_vtx = gfa_n_vtx(g);
     // Resize node_len
     node_len.resize(n_vtx, 0);
-    // Array of vectors
-    adj_ = new std::vector<int>[n_vtx];
+    adj_.resize(n_vtx);    
     /* Node_len */
     for (int v = 0; v < n_vtx/2; v++)
     {
@@ -811,14 +810,11 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         int N = M[cid].size(); // #Anchors
         int K = path_cover[cid].size(); // #Paths
         /* Initialise Search Trees */
-        std::pair<std::pair<int64_t, int> , int64_t> default_value = {{std::numeric_limits<int64_t>::min(), -1}, (int64_t)-1};
-        std::vector<SearchTree> I(K, SearchTree(default_value)); // Search Tree
         /* Initialise T */
         std::vector<Tuples> T; // Tuples of Anchors
-        std::vector<std::pair<int64_t,int>> C; // Array of Cost of each Anchor
+        std::vector<std::pair<int64_t, int>> C; // Array of Cost of each Anchor
         C.resize(N);
-	    int64_t sf = scale_factor; // Scale Factor
-	    int64_t cost =(int64_t) (M[cid][0].d - M[cid][0].c + 1)*sf; // Cost of each Anchor
+	    int64_t cost =(int64_t) (M[cid][0].d - M[cid][0].c + 1); // Cost of each Anchor
         for (int j = 0; j < N; j++) // Add Tuple of Anchors
         {
             int node = M[cid][j].v;
@@ -885,13 +881,25 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         int64_t _infty_int64 = std::numeric_limits<int64_t>::min();
         std::pair<std::pair<int64_t, int> , int64_t> rmq; // rmq
         std::pair<int, int> key;
+
+        float c_1 = expf(-div*(float)kmer_len), c_2 = 0.05*c_1; // penalities
+        if(!is_ggen) // minimap2 gap cost
+        {
+            c_1 = 0.01f * kmer_len; // minimap2
+	        c_2 = 0.0f;
+        }
+
+        std::vector<std::map<std::pair<int, int>, std::pair<int, int>>> MAP(K);
+        std::map<std::pair<int, int>, std::pair<int, int>>::iterator start_it, end_it;
+
         for (auto t:T) //  Process Tuples in the Lexicographic order of (rank(v), pos, task)
         {
             if(t.task == 0) // update the score
             {
-                int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
-                int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
-                int64_t range = (int64_t)(dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x - G - 1);
+                int64_t weight = (M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
+                int64_t range = (dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x - G - 1);
+                int64_t Rd_1 = (dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x);
+                int64_t Qd_1 = (M[cid][t.anchor].c);
                 if (index[cid][t.path][t.v] != -1) // same path
                 {
                     for (int l = x[t.path]; l < path_distance[t.path].size(); l++)
@@ -907,35 +915,43 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     for (int l = x[t.path]; l < rmq_coor[t.path]; l++)
                     {
                         key = path_distance[t.path][l].second;
-                        I[t.path].remove(key);
+                        MAP[t.path].erase(key);
                     }
 
                     // Update the pointer
                     x[t.path] = rmq_coor[t.path];   
                 }
-                // Extend the chain by adding the current anchor
-                rmq = I[t.path].RMQ_2({M[cid][t.anchor].c_, infty_int}, {M[cid][t.anchor].c - 1, infty_int}, range);
-                if (rmq.first.first > _infty_int64)
+                // Minigraph gap cost
+                start_it = MAP[t.path].lower_bound({M[cid][t.anchor].c_, infty_int});
+                end_it = MAP[t.path].upper_bound({M[cid][t.anchor].d - 1, infty_int}); // overlap 
+                // // Maximize the score function from window query
+                std::pair<int64_t, int> max_cost = std::make_pair(_infty_int64, -1);
+                int h = 0; 
+                for (auto i = std::reverse_iterator(end_it); i != std::reverse_iterator(start_it) && h < max_itr; i++)
                 {
-                    C[t.anchor] = std::max(C[t.anchor], { rmq.first.first - val_1 + val_2, rmq.first.second});
-                }
-                if (param_z) // debug
-                {
-                    std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first.first - val_1 + val_2) << " rmq.first : " << rmq.first.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distance : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
+                    int idx = i->second.first; // anchor_idx
+                    int v = i->second.second; // vertex
+                    int64_t Rd_2 = dist2begin[cid][t.path][v] + M[cid][idx].y + 1; // count of bases hence +1
+                    int64_t Qd_2 = M[cid][idx].d + 1;
+                    if (Rd_2 - 1 > range)
+                    {
+                        int64_t g = abs((Rd_1 - Rd_2) - (Qd_1 - Qd_2));
+                        int64_t d = std::min((Rd_1 - Rd_2), (Qd_1 - Qd_2));
+                        float log_pen = g >= 2 ? mg_log2(g) : 0.0f; // mg_log2() only works for dd>=2
+                        int64_t gap = (c_1*(float)g + c_2*(float)d + log_pen);
+                        weight = std::min(d, kmer_len);
+                        max_cost = max_cost.first > (C[idx].first - gap) ? max_cost : std::make_pair(C[idx].first - gap, idx); 
+                        C[t.anchor] = std::max(C[t.anchor], { weight + max_cost.first, max_cost.second});
+                        h++;
+                    }
                 }
 
             }else // update the priority of the anchor
             {
-                int64_t val_3 = (M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]); // M[i].d + M[i].y + dist2begin[v]
-                I[t.path].add({M[cid][t.anchor].d, t.anchor}, std::make_pair(std::make_pair(C[t.anchor].first + val_3 , t.anchor), (int64_t)(M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]))); // C[j].first + M[i].d + M[i].y + dist2begin[v] (priority, anchor)
+                MAP[t.path][{M[cid][t.anchor].d, t.anchor}] = {t.anchor, t.v};
                 path_distance[t.path].push_back({(int64_t)(M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]), {M[cid][t.anchor].d, t.anchor}}); // (value, key) pair
-                if (param_z) // debug
-                {
-                    std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path << " val_3 : " << val_3  << " M.y : " << M[cid][t.anchor].y <<  " dist2begin : "  << dist2begin[cid][t.path][t.v] << " M[i].d : " << t.d << "\n"; 
-                }
             }
         }
-
         // Backtracking for read mapping and graph generation
         if (N!=0)
         {
@@ -955,12 +971,12 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 return std::tie(a.first.first, a.first.second) > std::tie(b.first.first, b.first.second); // sort by score and index
             });
             // Find the minimum score
-            int min_score = scale_factor * (float)(M[cid][0].d - M[cid][0].c + 1); // minimum score for a contig
+            int min_score =  (M[cid][0].d - M[cid][0].c + 1); // minimum score for a contig
             // Find the maximum score
             std::pair<int64_t, int> chain_rmq = D[0].first; // Max value of (score, index)
             int prev_idx = 0; // index of the maximum score
             max_score = chain_rmq.first; // maximum score
-            int64_t threshold_score = is_ggen > 0 ? tau_1*(float)min_score : tau_1*(float)max_score; // threshold score
+            int64_t threshold_score = is_ggen > 0 ? 1000 : tau_1*(float)max_score; // threshold score
             int64_t best_cid_score = max_score; // best score for a contig
             std::pair<std::vector<mg128_t>, int64_t> chain_pair; // (chain, score)
             bool flag; // flag for disjoint chain
@@ -988,7 +1004,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     }
                 }
                 // Store the anchors if chain is disjoint and clear the keys
-                if (flag == true && temp_chain.size() > 3 ) // minimap2 min_cnt
+                if (flag == true && temp_chain.size()) // minimap2 min_cnt
                 {
                     for (int i = 0; i < temp_chain.size(); i++)
                     {
@@ -1068,24 +1084,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         }
         // Reverse the order of the elements in best
         std::reverse(best.begin(),best.end());
-        std::vector<int> red_idx;
-        std::vector<int> count(node_len.size(), 0); // Initialize the count array with all 0s
-        /* Count the frequency of each node */
-        for (int i = 0; i < best.size(); i++) {
-            int node = (int)(best[i].x >> 32);
-            count[node]++;
-        }
-        /* Find the indices of anchors with frequency <= 5 */
-        for (int i = 0; i < best.size(); i++) {
-            int node = (int)(best[i].x >> 32);
-            if (count[node] <= 5) {
-                red_idx.push_back(i);
-            }
-        }
-        /* Remove anchors from collected indices */
-        for (int i = red_idx.size() - 1; i >= 0; i--) {
-            best.erase(best.begin()+red_idx[i]);
-        }
     }
     if (param_z)
     {

@@ -126,7 +126,7 @@ static inline int32_t comput_sc(const mg128_t *ai, const mg128_t *aj, int32_t ma
 	dg = dr < dq? dr : dq;
 	q_span = aj->y>>32&0xff;
 	sc = q_span < dg? q_span : dg;
-	if (dd || dg > q_span) {
+	if (dd || dg > q_span && false) {
 		float lin_pen, log_pen;
 		lin_pen = chn_pen_gap * (float)dd + chn_pen_skip * (float)dg;
 		log_pen = dd >= 1? mg_log2(dd + 1) : 0.0f; // mg_log2() only works for dd>=2
@@ -241,7 +241,7 @@ static inline int32_t comput_sc_simple(const mg128_t *ai, const mg128_t *aj, flo
 	q_span = aj->y>>32&0xff;
 	sc = q_span < dg? q_span : dg;
 	if (exact) *exact = (dd == 0 && dg <= q_span);
-	if (dd || dq > q_span) {
+	if (dd || dq > q_span && false) {
 		float lin_pen, log_pen;
 		lin_pen = chn_pen_gap * (float)dd + chn_pen_skip * (float)dg;
 		log_pen = dd >= 1? mg_log2(dd + 1) : 0.0f; // mg_log2() only works for dd>=2

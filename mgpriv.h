@@ -121,10 +121,9 @@ void radix_sort_128x(mg128_t *beg, mg128_t *end);
 void radix_sort_gfa64(uint64_t *beg, uint64_t *end);
 uint32_t ks_ksmall_uint32_t(size_t n, uint32_t arr[], size_t kk);
 
-void pass_par(bool &param_z, float &scale_factor, int &G);
+void pass_par(bool &param_z, int &G);
 struct params
 {
-	float scale_factor;
 	bool param_z;
 	int G;
 };
