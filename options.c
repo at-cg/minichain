@@ -28,7 +28,7 @@ void mg_mapopt_init(mg_mapopt_t *mo)
 	mo->mini_batch_size = 500000000;
 	mo->div = 0.1f;
 	mo->l_chn_pen_gap = 0.0f, mo->l_chn_pen_skip = 0.0f; // Added for linear chaining
-	mo->chn_pen_gap = 0.0f, mo->chn_pen_skip = 0.00f; 
+	mo->chn_pen_gap = 1.0f, mo->chn_pen_skip = 0.05f; 
 	mo->min_lc_cnt = 6, mo->min_lc_score = 0;  
 	mo->min_gc_cnt = 5, mo->min_gc_score = 50;
 	mo->gdp_max_ed = 10000;
@@ -85,7 +85,7 @@ int mg_opt_set(const char *preset, mg_idxopt_t *io, mg_mapopt_t *mo, mg_ggopt_t 
 		mo->bw = 1000, mo->bw_long = 150000;
 		mo->max_gap = 150000, mo->max_gap_pre = 1000;
 		mo->min_lc_cnt = 1, mo->min_lc_score = 0; 
-		mo->min_gc_cnt = 1, mo->min_gc_score = 1000; 
+		mo->min_gc_cnt = 5, mo->min_gc_score = 1000; 
 		mo->min_cov_mapq = 5;
 		mo->min_cov_blen = 100000;
 		mo->max_lc_skip = mo->max_gc_skip = 50;
