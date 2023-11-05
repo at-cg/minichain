@@ -19,7 +19,7 @@
 - Using the information from true haplotype paths and chained haplotype paths, we calculate both the Pearson correlation coefficient and F1-scores.
 
 **Step 5:** Result Visualization
-- The generated plots are saved in a folder labeled "align_x," where 'x' represents the substitution rate.
+- The generated plots will be saved in a folder labeled "align_x," where 'x' represents the substitution rate.
 
 To reproduce the results, execute the following commands:
 
