@@ -1,8 +1,8 @@
-# `<div align="center">`Minichain`</div>`
+# <div align="center">`Minichain`</div>
 
-## `<div align="center">`Long-read Aligner to Pangenome Graphs`</div>`
+## <div align="center">`Long-read Aligner to Pangenome Graphs`</div>
 
-## `<a name="started"></a>`Getting Started
+## <a name="started"></a>Getting Started
 
 ### Get Minichain
 
@@ -37,7 +37,7 @@ minichain -cx lr test/Graphs/C4-CHM13_mg.gfa test/Genomes/C4-HG03492.2.fa > C4-H
 - [Future work](#future_work)
 - [Publications](#pub)
 
-## `<a name="intro"></a>`Introduction
+## <a name="intro"></a>Introduction
 
 Minichain is a haplotype-aware long-read aligner to a pangenome graph represented as DAGs. Minichain is designed to align long reads or genome assemblies to pangenome graphs. It can scale to pangenomes built from several human genome assemblies. Minichain employs two provably-good algorithms:
 
@@ -48,9 +48,9 @@ See our [publications](#pub) for algorithm details.
 
 These algorithms enable accurate and fast long-read alignments. Minichain borrows seeding and base-to-base alignment code from [Minigraph][minigraph].
 
-## `<a name="uguide"></a>`User's Guide
+## <a name="uguide"></a>User's Guide
 
-### `<a name="install"></a>`Installation
+### <a name="install"></a>Installation
 
 ```bash
 git clone https://github.com/at-cg/minichain
@@ -66,7 +66,7 @@ minichain --version
 1) [gcc9][gcc9] or later version
 2) [zlib][zlib]
 
-### `<a name="map"></a>`Read mapping
+### <a name="map"></a>Read mapping
 
 Minichain can be used for both sequence-to-sequence alignment as well as sequence-to-graph alignment. A graph should be provided in either [GFA v1.0][gfa1], [rGFA][rgfa] or [GFA v1.1][gfa11] (haplotype-aware) format. 
 Minichain automatically switches between haplotype-aware and haplotype-agnostic chaining algorithms based on the input pangenome graph.
@@ -83,7 +83,7 @@ minichain -cx lr test/Graphs/C4-CHM13_mg.gfa test/Genomes/C4-HG03492.2.fa > C4-H
 
 ```
 
-### `<a name="ggen"></a>`Graph generation
+### <a name="ggen"></a>Graph generation
 
 Minichain can be used for the incremental graph generation. Sequences should be provided in FASTA format. Users can run quick tests on [sample data](test/) using the following command. The graph output is provided in [rGFA][rgfa] format.
 
@@ -92,7 +92,7 @@ Minichain can be used for the incremental graph generation. Sequences should be 
 minichain -cxggs test/Genomes/C4-CHM13.fa test/Genomes/C4-HG002.1.fa test/Genomes/C4-HG002.2.fa > C4-CHM13.gfa
 ```
 
-## `<a name="bench"></a>`Benchmark
+## <a name="bench"></a>Benchmark
 
 ### v1.3
 
@@ -106,7 +106,7 @@ We have benchmarked Minichain (v1.3) and demonstrated that the chained haplotype
 
 **Step 2:** Simulating Haplotypes
 - We simulate 135 MHC haplotypes, creating an imperfect mosaic of haplotype paths derived from the graph and recording the true haplotype paths.
-- We split the simulated haplotypes into three groups, each consisting of 45 haplotypes, with substitution error rates of $0.1\%$, $1\%$, and $5\%$.
+- We split the simulated haplotypes into three groups, each consisting of 45 haplotypes, with substitution error rates of 0.1%, 1%, and 5%.
 
 **Step 3:** Alignment and Haplotype Switches
 - The simulated MHC haplotypes are aligned to the MHC pangenome graph, and the chained haplotype paths are recorded.
@@ -116,7 +116,7 @@ We have benchmarked Minichain (v1.3) and demonstrated that the chained haplotype
 
 **Step 5:** Results
 
-- Results shows that haplotype-aware co-linear chaining shows better consistency of recombination events as compared to haplotype-agnostic (Recombination penalty = 0) and haplotype-restricted (Recombination penalty = $\infty$).
+- Results show that haplotype-aware co-linear chaining shows better consistency of recombination events as compared to haplotype-agnostic (Recombination penalty = 0) and haplotype-restricted (Recombination penalty = ∞).
 
 <p align="center" id="Pearson">
   <a href="./data/v1.3/pearson.png">
@@ -153,7 +153,7 @@ We have compared Minichain (v1.2) with existing sequence to graph aligners to de
 
 Scripts are provided in [data](./data/v1.0/) folder to reproduce the results.
 
-## `<a name="future_work"></a>`Future work
+## <a name="future_work"></a> Future work
 
 We plan to continue adding features in future releases.
 
@@ -162,7 +162,7 @@ We plan to continue adding features in future releases.
 
 <!--- * Support for chromosome-long query sequences. This is needed for [incremental pangenome graph construction (https://github.com/lh3/minigraph/blob/master/doc/example1.png). -->
 
-## `<a name="pub"></a>`Publications
+## <a name="pub"></a> Publications
 
 - **Ghanshyam Chandra and Chirag Jain**. "Haplotype-aware Sequence-to-Graph Alignment". *(under review)*.
 - **Ghanshyam Chandra and Chirag Jain**. "[Sequence to Graph Alignment Using Gap-Sensitive Co-linear Chaining](https://doi.org/10.1101/2022.08.29.505691)". *RECOMB* 2023.
