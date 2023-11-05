@@ -15,6 +15,15 @@ void get_Op(graphUtils *graph_Op)
 	graphOp = graph_Op;
 }
 
+void get_vars(int &min, int &max, int &max_sum, int &count, float &accuracy, std::string &hap_seqs){
+	min = graphOp->min;
+	max = graphOp->max;
+	max_sum = graphOp->max_sum;
+	accuracy = graphOp->accuracy;
+	count = graphOp->count;
+	hap_seqs = graphOp->hap_seqs;
+}
+
 struct mg_tbuf_s {
 	void *km;
 	int frag_gap;
@@ -404,14 +413,17 @@ void mg_map_frag(const mg_idx_t *gi, int n_segs, const int *qlens, const char **
 	graphOp->tau_1 = opt->tau_1;
 	graphOp->tau_2 = opt->tau_2;
 	graphOp->is_ggen = opt->is_ggen;
+	graphOp->is_hap = opt->is_hap;
 	graphOp->kmer_len = gi->k;
 	graphOp->div = opt->div;
 	graphOp->max_itr = opt->max_itr;
+	graphOp->seq_len = qlen_sum;
 	if (graphOp->G == 5000) // No user input 
 	{
 		graphOp->G = opt->G;
 	} // else G will be passed from user input
-	std::vector<mg128_t> best = graphOp->Chaining(anchor);
+	std::string qname_str = qname;
+	std::vector<mg128_t> best = graphOp->Chaining(anchor, qname_str);
 	kfree(b->km, a);
 	KMALLOC(b->km, a, best.size());
 	for (size_t i = 0; i < best.size(); i++)

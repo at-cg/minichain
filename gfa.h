@@ -82,6 +82,15 @@ typedef struct {
 	int32_t min, max, rank;
 } gfa_sseq_t;
 
+typedef struct {
+	char *sample;
+	int32_t snid;
+	int32_t hap, n_v;
+	int64_t st, en;
+	uint32_t *v;
+	gfa_aux_t aux;
+} gfa_walk_t;
+
 #define gfa_n_vtx(g) ((g)->n_seg << 1)
 
 typedef struct {
@@ -98,6 +107,10 @@ typedef struct {
 	gfa_arc_t *arc;
 	gfa_aux_t *link_aux;
 	uint64_t *idx;
+	// walks
+	uint32_t m_walk, n_walk;
+	gfa_walk_t *walk;
+	void *h_samples;
 } gfa_t;
 
 typedef struct {

@@ -9,11 +9,11 @@ graphUtils::graphUtils(gfa_t *g)
 // Read and store the Graph in Adjacency list
 void graphUtils::read_graph()
 {
-    uint32_t v;
+    uint v;
     n_vtx = gfa_n_vtx(g);
     // Resize node_len
     node_len.resize(n_vtx, 0);
-    adj_.resize(n_vtx);    
+    adj_.resize(n_vtx); 
     /* Node_len */
     for (int v = 0; v < n_vtx/2; v++)
     {
@@ -24,7 +24,7 @@ void graphUtils::read_graph()
     }
     // look for all the edges , if the sum of all the 
     // edges are zero then, that's a linear reference
-    u_int32_t num_edges = 0;
+    u_int num_edges = 0;
     for (v = 0; v < n_vtx; v++)
     {
         gfa_arc_t *av = gfa_arc_a(g, v);
@@ -51,11 +51,61 @@ void graphUtils::read_graph()
             // std::cerr << " node : " << v << " node_len : " << node_len[v] << std::endl; 
             for (int i = 0; i < n_edges; i++)
             {
-                uint32_t w = av[i].w;
+                uint w = av[i].w;
                 adj_[v_].push_back(w);
             }
         }
     }
+
+
+    // Read walks
+    if (g->n_walk > 0) is_hprc_gfa = true;
+
+    // flip gfa walks
+
+    for (int n = 0; n < g->walk[0].n_v; n++)
+    {
+        int v = g->walk[0].v[n];
+    }
+    
+    num_walks = g->n_walk; // count number of walks
+    for (size_t w = 0; w < g->n_walk; w++)
+    {
+        // store the walk in vector
+        std::vector<int> walk;
+        std::vector<int> rev_walk;
+        for (size_t n = 0; n < g->walk[w].n_v; n++)
+        {
+            int v = g->walk[w].v[n];
+            walk.push_back((v)); // Forward Strand
+            haps[v].push_back(g->walk[w].sample); // Map walk to sample
+            rev_walk.push_back((v|1)); // Reverse Strand
+            rev_walk_map[g->walk[w].sample].push_back(v); // Map reverse walk to sample
+        }
+
+        walk_ids.push_back(g->walk[w].sample);
+
+        walk_map[w] = g->walk[w].sample;
+        walk_map[w + g->n_walk] = g->walk[w].sample;
+        // rev_walk_map[g->walk[w].sample].push_back(w);
+        // rev_walk_map[g->walk[w].sample].push_back(w + g->n_walk);
+
+        // std::cerr << " haplotype : " << g->walk[w].sample << " walk id : " << w << std::endl; 
+
+        if (param_z) std::cerr << "Walk id : " << walk_map[w]<< std::endl;
+        
+        // std::reverse(walk.begin(), walk.end()); // Just checking whether reverse is needed or not (We don't need)
+        std::reverse(rev_walk.begin(), rev_walk.end()); // Just checking whether reverse is needed or not (We don't need)
+        walks.push_back(walk);
+        rev_walks.push_back(rev_walk);
+        walk.clear();
+        rev_walk.clear();
+    }
+
+    // reverse walks and rev_walks
+    std::reverse(walks.begin(), walks.end());
+    std::reverse(rev_walks.begin(), rev_walks.end());
+
 }
 
 void graphUtils::print_graph()
@@ -179,7 +229,46 @@ void graphUtils::Connected_components()
             }
         }
     }
-    // In degree and Outdegree computation
+
+    // HPRC GFA
+    if (is_hprc_gfa)
+    {
+        local_walks.resize(num_cid);
+        // map walks to cids
+        std::vector<int> used_idxs(walks.size(), 0);
+        for (size_t w = 0; w < walks.size(); w++)
+        {
+            std::vector<int> temp;
+            // push walks to local_walks
+            int cid = component[walks[w][0]];
+            for (auto u_w : walks[w])
+            {
+                temp.push_back(idx_component[cid][u_w]);
+            }
+            used_idxs[w] = cid;
+            local_walks[cid].push_back(temp);
+            temp.clear();
+        }
+
+        for (size_t w = 0; w < rev_walks.size(); w++)
+        {
+            if (used_idxs[w] == 0) // Only push reverse for forward strand else leave
+            {
+                int cid = component[rev_walks[w][0]];
+                if (cid != 0) // Don't push forward strand already pushed
+                {
+                    std::vector<int> temp;
+                    // push walks to local_walks
+                    for (auto u_w : rev_walks[w])
+                    {
+                        temp.push_back(idx_component[cid][u_w]);
+                    }
+                    local_walks[cid].push_back(temp);
+                    temp.clear();
+                }
+            }
+        }
+    }
 }
 
 
@@ -262,6 +351,10 @@ void graphUtils::topologicat_sort()
     in_degree.resize(num_cid);
     out_degree.resize(num_cid);
     map_top_sort.resize(num_cid);
+
+    // In node and out node
+    in_node.resize(num_cid);
+    out_node.resize(num_cid);
     // queue
     std::vector<std::queue<int>> q;
     q.resize(num_cid);
@@ -330,6 +423,23 @@ void graphUtils::topologicat_sort()
         
     }
 
+    // in_node and out_node computation
+    for (size_t cid = 0; cid < num_cid; cid++)
+    {
+        // Compute In-node and Out-node
+        in_node[cid].resize(adj_cc[cid].size());  // all nodes
+        out_node[cid].resize(adj_cc[cid].size()); // all nodes
+        // computing in_nodes and out_nodes
+        for (int u = 0; u < adj_cc[cid].size(); u++)
+        {
+            for (auto const &v : adj_cc[cid][u])
+            {
+            in_node[cid][v].push_back(u);
+            out_node[cid][u].push_back(v);
+            }
+        }
+    }
+
     /* Mapping for Top_Sort */
     for (int cid = 0; cid < num_cid; cid++)
     {
@@ -339,11 +449,9 @@ void graphUtils::topologicat_sort()
         {
             map_top_sort[cid][top_order[cid][v]] = v;
         }
-
     }
     in_degree.clear();
     out_degree.clear();
-    // std::cout << " Computed Topological Order " << std::endl;
 }
 
 std::vector<std::vector<int>> graphUtils::shrink(int cid)
@@ -497,100 +605,97 @@ bool check_MPC(std::vector<std::vector<int>> adj, std::vector<int> path_verify, 
 
 void graphUtils::MPC()
 {
-    /*
-    ######################
-    # MPC (greedy cover) #
-    ######################
-    */
-    path_cover.resize(num_cid);
-    in_node.resize(num_cid);
-    out_node.resize(num_cid);
-    omp_set_dynamic(1);
-    omp_set_num_threads(0);
-    #pragma omp parallel for
-    for (size_t cid = 0; cid < num_cid; cid++)
-   {
+    if(is_hprc_gfa)
+    {
+        // use GFA v1.1 walks as path cover
+        path_cover = local_walks;
 
-        in_node[cid].resize(adj_cc[cid].size());  // all nodes
-        out_node[cid].resize(adj_cc[cid].size()); // all nodes
-        // computing in_nodes and out_nodes
-        for (int u = 0; u < adj_cc[cid].size(); u++)
+    }else {
+        /*
+        ######################
+        # MPC (greedy cover) #
+        ######################
+        */
+        path_cover.resize(num_cid);
+        omp_set_dynamic(1);
+        omp_set_num_threads(0);
+        #pragma omp parallel for
+        for (size_t cid = 0; cid < num_cid; cid++)
         {
-            for (auto const &v : adj_cc[cid][u])
-            {
-            in_node[cid][v].push_back(u);
-            out_node[cid][u].push_back(v);
-            }
-        }
-        /* Greedy MPC! */
-        int T = 0;
-        int covered_count = 0;
-        std::vector<int> covered;
-        std::vector<int> max_cover;
-        std::vector<int> pre;
-        std::vector<int> path;
-        int V = adj_cc[cid].size(); 
-        covered.resize(V,0);
-        max_cover.resize(V,0);
-        pre.resize(V,-1); // Initialise as "None"
-        while (covered_count < V)
-        {
-            for (size_t i = 0; i < max_cover.size(); i++)
-            {
-                max_cover[i] = 0;
-                pre[i] = -1;
-            }
-            
-            for (auto const & v: top_order[cid])
-            {
-                if (covered[v] == 0)
-                {
-                    max_cover[v]++;
-                }
-                
-                for (auto const& u : adj_cc[cid][v])
-                {
-                    if (max_cover[u] < max_cover[v])
-                    {
-                        max_cover[u] = max_cover[v];
-                        pre[u] = v;
-                    }   
-                }
-            }
-            auto max = std::max_element(max_cover.begin(),max_cover.end());
-            T = std::distance(max_cover.begin(),max); // argmax(max_cover[v])
-            
-            int new_covered = 0;
+            /* Greedy MPC! */
+            int T = 0;
+            int covered_count = 0;
+            std::vector<int> covered;
+            std::vector<int> max_cover;
+            std::vector<int> pre;
+            std::vector<int> path;
+            int V = adj_cc[cid].size(); 
+            covered.resize(V,0);
+            max_cover.resize(V,0);
+            pre.resize(V,-1); // Initialise as "None"
             while (covered_count < V)
             {
-                if (T == -1)
+                for (size_t i = 0; i < max_cover.size(); i++)
                 {
-                    break;
-                }else
-                {
-                    if (covered[T] == 0)
-                    {
-                        covered_count++;
-                        covered[T] = 1;
-                        new_covered++;
-                    }
-                    path.push_back(T);
-                    T = pre[T];
+                    max_cover[i] = 0;
+                    pre[i] = -1;
                 }
                 
+                for (auto const & v: top_order[cid])
+                {
+                    if (covered[v] == 0)
+                    {
+                        max_cover[v]++;
+                    }
+                    
+                    for (auto const& u : adj_cc[cid][v])
+                    {
+                        if (max_cover[u] < max_cover[v])
+                        {
+                            max_cover[u] = max_cover[v];
+                            pre[u] = v;
+                        }   
+                    }
+                }
+                auto max = std::max_element(max_cover.begin(),max_cover.end());
+                T = std::distance(max_cover.begin(),max); // argmax(max_cover[v])
+                
+                int new_covered = 0;
+                while (covered_count < V)
+                {
+                    if (T == -1)
+                    {
+                        break;
+                    }else
+                    {
+                        if (covered[T] == 0)
+                        {
+                            covered_count++;
+                            covered[T] = 1;
+                            new_covered++;
+                        }
+                        path.push_back(T);
+                        T = pre[T];
+                    }
+                    
+                }
+                std::reverse(path.begin(),path.end());
+                path_cover[cid].push_back(path);
+                // std::cerr << "cid = " << cid << " path #" << path_cover[cid].size() << " : " << path.size() << " " << new_covered << " " << (V - covered_count) << std::endl;
+                path.clear();
             }
-            std::reverse(path.begin(),path.end());
-            path_cover[cid].push_back(path);
-            // std::cerr << "cid = " << cid << " path #" << path_cover[cid].size() << " : " << path.size() << " " << new_covered << " " << (V - covered_count) << std::endl;
-            path.clear();
-        }
 
-        // Shrink Path Cover
-        path_cover[cid] = shrink(cid);
-        std::reverse(path_cover[cid].begin(),path_cover[cid].end());
-        if (param_z)
+            // Shrink Path Cover
+            path_cover[cid] = shrink(cid);
+            std::reverse(path_cover[cid].begin(),path_cover[cid].end());
+        }
+    }
+
+    if (param_z)
+    {
+        /* Check MPC */
+            for (size_t cid = 0; cid < num_cid; cid++)
         {
-            /* Check MPC */
             bool check_path;
             for (int k = 0; k < path_cover[cid].size(); k++)
             {
@@ -603,16 +708,16 @@ void graphUtils::MPC()
                 }
             }
         }
-   }
-   // Compute [min-max] paths for cids
-  int min = path_cover[0].size();
-  int max = min;
-  for(int cid = 1; cid < num_cid; cid++)
-  {
-      min = min<path_cover[cid].size()?min:path_cover[cid].size();
-      max = max>path_cover[cid].size()?max:path_cover[cid].size();
-  }
-  fprintf(stderr, "[M::%s] range MPC [%d-%d] \n", __func__,min,max);
+    }
+    // Compute [min-max] paths for cids
+    int min = path_cover[0].size();
+    int max = min;
+    for(int cid = 1; cid < num_cid; cid++)
+    {
+        min = min<path_cover[cid].size()?min:path_cover[cid].size();
+        max = max>path_cover[cid].size()?max:path_cover[cid].size();
+    }
+    fprintf(stderr, "[M::%s] range Haplotypes [%d-%d] \n", __func__,min,max);
 }
 
 void graphUtils::MPC_index()
@@ -640,23 +745,23 @@ void graphUtils::MPC_index()
         index[cid].resize(path_cover[cid].size(),std::vector<int>(adj_cc[cid].size(),-1));
         paths[cid].resize(N);
         rev_index[cid].resize(path_cover[cid].size(),std::vector<int>(adj_cc[cid].size(),-1));
-        dist2begin[cid].resize(path_cover[cid].size(),std::vector<int64_t>(adj_cc[cid].size(),0));
+        dist2begin[cid].resize(path_cover[cid].size(),std::vector<int>(adj_cc[cid].size(),0));
         for (size_t k = 0; k < path_cover[cid].size(); k++)
         {
             int i = 0;
-            int64_t temp = 0;
+            int temp = 0;
             for (auto idx : path_cover[cid][k])
             {
                 index[cid][k][idx] = i; // assuming topologically sorted in origional component
                 rev_index[cid][k][i++] = idx;
                 dist2begin[cid][k][idx] = temp;
-                temp += (int64_t)node_len[component_idx[cid][idx]];
+                temp += (int)node_len[component_idx[cid][idx]];
             }
         }
 
         // last2reach computation
         last2reach[cid].resize(path_cover[cid].size(),std::vector<int>(adj_cc[cid].size(),-1)); // Initialise last2reach
-        Distance[cid].resize(path_cover[cid].size(),std::vector<int64_t>(adj_cc[cid].size(),std::numeric_limits<int64_t>::max()/2)); // Initilaise Distance
+        Distance[cid].resize(path_cover[cid].size(),std::vector<int>(adj_cc[cid].size(),std::numeric_limits<int>::max()/2)); // Initilaise Distance
 
         for (int k = 0; k < K; k++)
         {
@@ -667,29 +772,10 @@ void graphUtils::MPC_index()
             }
         }
 
-        // Topological order (kahn's Algorithm)
-        std::vector<int> incd(N, 0), Q;
-        for (int i = 0; i < N; i++)
-        {
-            incd[i] = in_node[cid][i].size();
-            if (incd[i] == 0)
-            {
-                Q.push_back(i);
-            }
-        }
-        for (int i = 0; i < Q.size(); ) {
-        int s = Q[i++];
-        for (size_t t : out_node[cid][s]) {
-            incd[t]--;
-            if (incd[t] == 0)
-                Q.push_back(t);
-            }
-        }
-
         // last2reach computation
         for (int k = 0; k < K; k++)
         {
-            for (int v : Q) {
+            for (int v : top_order[cid]) {
                 for (size_t u : in_node[cid][v]) {
                     last2reach[cid][k][v] = std::max(last2reach[cid][k][v], last2reach[cid][k][u]);
                 }
@@ -701,18 +787,18 @@ void graphUtils::MPC_index()
         {
             for (auto v : path_cover[cid][k])
             {
-                Distance[cid][k][v] = (int64_t)0;
+                Distance[cid][k][v] = (int)0;
             }
             
         }
 
         for (int k = 0; k < K; k++)
         {
-            for (int v : Q) {
+            for (int v : top_order[cid]) {
                 for (size_t u : in_node[cid][v]) {
                     if (last2reach[cid][k][v] == last2reach[cid][k][u] && last2reach[cid][k][v] != -1)
                     {
-                        Distance[cid][k][v] = ((int64_t)node_len[component_idx[cid][u]] + std::min(Distance[cid][k][v], Distance[cid][k][u]));
+                        Distance[cid][k][v] = ((int)node_len[component_idx[cid][u]] + std::min(Distance[cid][k][v], Distance[cid][k][u]));
                     }
                 }
             }
@@ -725,7 +811,7 @@ void graphUtils::MPC_index()
             {
                 if (last2reach[cid][k][v] == -1)
                 {
-                    Distance[cid][k][v] = (int64_t)0;
+                    Distance[cid][k][v] = (int)0;
                 }
             }
         }
@@ -761,7 +847,7 @@ void graphUtils::MPC_index()
         // }
 
         // std::cerr << " Distance " << std::endl;
-        // for (size_t i = 0; i < K; i++)
+        // for (size_t i = 0; i < 1; i++)
         // {
         //     for (size_t j = 0; j < N; j++)
         //     {
@@ -776,13 +862,14 @@ bool compare_T(const Tuples &a, const Tuples &b){
     return std::tie( a.top_v , a.pos, a.task) < std::tie( b.top_v , b.pos, b.task);
 };
 
-std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
+std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::string query_name)
 {
     if (param_z)
     {
-        std::cerr << " Number of Anchors : " << anchors.size() << "\n";
+        std::cerr << "Number of Anchors : " << anchors.size() << "\n";
     }
-    
+
+    std::vector<std::set<std::string>> chain_haps(num_cid);
     std::vector<mg128_t> best; // Best Anchors
     std::vector<std::vector<Anchors>> M; // Anchors
     M.resize(num_cid);
@@ -791,68 +878,123 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     for (int j = 0; j < anchors.size(); j++) // For each anchor Divide Anchors corresponding to their cids
     {
         Anchors M_; // Anchor
-        int minimizer_len = (int32_t)(anchors[j].y>>32&0xff);
+        int minimizer_len = (int)(anchors[j].y>>32&0xff);
         int node = (int)(anchors[j].x>>32);
         M_.v = node;
-        M_.c = (int32_t)(anchors[j].y) - minimizer_len + 1;
-        M_.d =  (int32_t)(anchors[j].y);
-        M_.x =  (int32_t)(anchors[j].x) - minimizer_len + 1;
-        M_.y =  (int32_t)(anchors[j].x);
+        M_.c = (int)(anchors[j].y) - minimizer_len + 1;
+        M_.d =  (int)(anchors[j].y);
+        M_.x =  (int)(anchors[j].x) - minimizer_len + 1;
+        M_.y =  (int)(anchors[j].x);
         M_.c_ = (int)(M_.c - G);
         M[component[node]].push_back(M_);
         idx_Anchor[component[node]].push_back(anchors[j]);
     }
-    std::vector<std::pair<std::vector<mg128_t>,int64_t>> best_chains; // Best Chains
+    std::vector<std::pair<std::vector<mg128_t>,int>> best_chains; // Best Chains
     best_chains.resize(num_cid);
     std::vector<int> chain_count(num_cid,0);
-    for (int cid = 0; cid < num_cid; cid++)
+
+    if (is_hprc_gfa)
     {
-        int N = M[cid].size(); // #Anchors
-        int K = path_cover[cid].size(); // #Paths
-        /* Initialise Search Trees */
-        /* Initialise T */
-        std::vector<Tuples> T; // Tuples of Anchors
-        std::vector<std::pair<int64_t, int>> C; // Array of Cost of each Anchor
-        C.resize(N);
-	    int64_t cost =(int64_t) (M[cid][0].d - M[cid][0].c + 1); // Cost of each Anchor
-        for (int j = 0; j < N; j++) // Add Tuple of Anchors
+        // Recombinations count
+        std::vector<int> min_loc(num_cid, 0), max_loc(num_cid, 0);
+        count++; // Read count
+        for (int cid = 0; cid < num_cid; cid++)
         {
-            int node = M[cid][j].v;
-            int v = idx_component[cid][node];
-            for (int k = 0; k < K; k++)
+            int N = M[cid].size(); // #Anchors
+            int K = path_cover[cid].size(); // #Paths
+            
+            // minichain
+            if (param_z) std::cerr << "Query length : " << seq_len << std::endl;
+            int sf = scale_factor;    
+            if (N == 0) continue;
+
+            /* Initialise Search Trees */
+            /* Initialise T */
+            std::vector<Tuples> T; // Tuples of Anchors
+            int cost = (M[cid][0].d - M[cid][0].c + 1) * scale_factor;
+
+            // RMQ (AVL Tree)
+            std::pair<int, int> defaul_value = {std::numeric_limits<int>::min(), -1};
+            std::vector<IndexX> I(K, IndexX());
+            
+            // Initialize cost
+            // std::vector<std::vector<std::pair<std::pair<int,int>, int>>> C(N, std::vector<std::pair<std::pair<int,int>,int>>(K, {{cost, -1}, -1}));
+            // std::vector<std::pair<std::pair<int,int>, int>> C_m(N, std::pair<std::pair<int,int>,int>({{cost, -1}, -1}));
+            // std::vector<std::pair<std::pair<int,int>, int>> C_p(N, std::pair<std::pair<int,int>,int>({{cost, -1}, -1}));
+
+            // Initialise C as dynamic array
+            Score** C = new Score*[N];
+            Score* C_m = new Score[N];
+            Score* C_p = new Score[N];
+            for (int i = 0; i < N; i++)
             {
-                if (index[cid][k][v] != -1) // v is on the path "k"
+                C[i] = new Score[K];
+            }
+
+            // Initialise C, C_m and C_p
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < K; j++)
                 {
-                    Tuples t;
-                    // for task 0
-                    t.anchor = j; // anchor id
-                    t.path = k; // path id
-                    t.pos = M[cid][j].x; // position of the anchor on a graph
-                    t.task = 0; // task id
-                    t.d = M[cid][j].d; // position of the anchor on a query
-                    t.v = v; // sorting purpose
-                    t.w = v; // vertex in which the anchor lies.
-                    t.top_v = map_top_sort[cid][v]; // Topological sorting of the vertex
-                    T.push_back(t); // Add Tuple
-                    // for task 1
-                    t.anchor = j;
-                    t.path = k;
-                    t.pos = M[cid][j].y;
-                    t.task = 1;
-                    t.d = M[cid][j].d;
-                    t.v = v; 
-                    t.w = v;
-                    t.top_v = map_top_sort[cid][v];
-                    T.push_back(t);
-                }else if (last2reach[cid][k][v] != -1) // v is not on the path "k" and if last2reach exist
+                    C[i][j].s = cost;
+                    C[i][j].i = -1;
+                    C[i][j].j = -1;
+                }
+                C_m[i].s = cost;
+                C_m[i].i = -1;
+                C_m[i].j = -1;
+                C_p[i].s = cost;
+                C_p[i].i = -1;
+                C_p[i].j = -1;
+            }
+            
+            
+            for (int j = 0; j < N; j++) // Add Tuple of Anchors
+            {
+                int node = M[cid][j].v;
+                int v = idx_component[cid][node];
+                for (int k = 0; k < K; k++)
                 {
-                    int w = last2reach[cid][k][v]; // vertex -> Index
-                    w = rev_index[cid][k][w]; // index -> vertex
-                    int len = node_len[component_idx[cid][w]];
-                    // if first anchor exceeds distance then remove it
-                    int64_t gap = Distance[cid][k][v] + M[cid][j].x - len + 1; // gap from last2reach node to the anchor on different node
-                    if (gap <= G)
+                    if (index[cid][k][v] != -1) // v is on the path "k"
                     {
+                        Tuples t;
+                        // for task 0
+                        t.anchor = j; // anchor id
+                        t.path = k; // path id
+                        t.pos = M[cid][j].x; // position of the anchor on a graph
+                        t.task = 0; // task id
+                        t.d = M[cid][j].d; // position of the anchor on a query
+                        t.v = v; // sorting purpose
+                        t.w = v; // vertex in which the anchor lies.
+                        t.top_v = map_top_sort[cid][v]; // Topological sorting of the vertex
+                        T.push_back(t); // Add Tuple
+
+                        // for task 1
+                        t.anchor = j; // anchor id
+                        t.path = k; // path id
+                        t.pos = M[cid][j].x; // position of the anchor on a graph
+                        t.task = 1; // task id
+                        t.d = M[cid][j].d; // position of the anchor on a query
+                        t.v = v; // sorting purpose
+                        t.w = v; // vertex in which the anchor lies.
+                        t.top_v = map_top_sort[cid][v]; // Topological sorting of the vertex
+                        T.push_back(t); // Add Tuple
+
+                        // for task 2
+                        t.anchor = j;
+                        t.path = k;
+                        t.pos = M[cid][j].y;
+                        t.task = 2;
+                        t.d = M[cid][j].d;
+                        t.v = v; 
+                        t.w = v;
+                        t.top_v = map_top_sort[cid][v];
+                        T.push_back(t);
+
+                    }else if (last2reach[cid][k][v] != -1) // v is not on the path "k" and if last2reach exist
+                    {
+                        int w = last2reach[cid][k][v]; // vertex -> Index
+                        w = rev_index[cid][k][w]; // index -> vertex
                         Tuples t;
                         // for task 0
                         t.anchor = j;
@@ -864,180 +1006,530 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                         t.w = v;
                         t.top_v = map_top_sort[cid][w]; // Topological Sort
                         T.push_back(t);
-                    }
-                }   
+                    }   
+                }
             }
-            /* Initialise C */
-            C[j] = {cost , -1};
-        }
 
-        // Initialize a pointer and a array.
-        std::vector<int> x(K,0); // pointer for the path
-        std::vector<int> rmq_coor(K,0); // current index of the anchor which lies outside the window
-        /* Erase redundant Tuples and Sort the Tuples by T.v, T.pos, T.task */ 
-        std::sort(T.begin(),T.end(),compare_T); // Sort Tuples
-        std::vector<std::vector<std::pair<int64_t, std::pair<int, int>>>> path_distance(K); // path_distance[path][l] = (M[cid][t.anchor].y + dist2begin[cid][t.path][t.v] , anchor)
-        int infty_int = std::numeric_limits<int>::max();
-        int64_t _infty_int64 = std::numeric_limits<int64_t>::min();
-        std::pair<std::pair<int64_t, int> , int64_t> rmq; // rmq
-        std::pair<int, int> key;
+            // Sort the tuples in ascending order of (rank(v), pos, task)
+            std::sort(T.begin(), T.end(), compare_T); // Sort Tuples
+            std::pair<int, int> rmq = {std::numeric_limits<int>::min(), -1};
+            int wt = cost;
 
-        float c_1 = expf(-div*(float)kmer_len), c_2 = 0.05*c_1; // penalities
-        if(!is_ggen) // minimap2 gap cost
-        {
-            c_1 = 0.01f * kmer_len; // minimap2
-	        c_2 = 0.0f;
-        }
+            int infty= std::numeric_limits<int>::min();
 
-        std::vector<std::map<std::pair<int, int>, std::pair<int, int>>> MAP(K);
-        std::map<std::pair<int, int>, std::pair<int, int>>::iterator start_it, end_it;
+            // Backward Pointers
+            int max_score = -1;
+            int idx = 0;
+            int path = 0;
 
-        for (auto t:T) //  Process Tuples in the Lexicographic order of (rank(v), pos, task)
-        {
-            if(t.task == 0) // update the score
+            // Optimized Backtracking
+            std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> D(N, std::pair<std::pair<int, int>, \ 
+                        std::pair<int, int>>({std::numeric_limits<int>::min(), -1},{-1, -1})); // (score, index), index
+
+            // For dyanamic range tree
+            // Initialize a pointer and a array.
+            std::vector<int> x(K,0); // pointer for the path
+            std::vector<int> rmq_coor(K,0); // current index of the anchor which lies outside the window of G
+            std::vector<std::vector<std::pair<int, std::pair<int, int>>>> path_distance(K); // path_distance[path][l] = (M[cid][t.anchor].y + dist2begin[cid][t.path][t.v] , anchor)
+            std::pair<int, int> key;
+
+            if(param_z) std::cerr << "Chaining started for cid : " << cid << "\n";
+
+            int i = 0, j = 0, v = 0, w = 0;
+            for (auto t:T) //  Process Tuples in the Lexicographic order of (rank(v), pos, task)
             {
-                int64_t weight = (M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
-                int64_t range = (dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x - G - 1);
-                int64_t Rd_1 = (dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x);
-                int64_t Qd_1 = (M[cid][t.anchor].c);
-                if (index[cid][t.path][t.v] != -1) // same path
+                i = t.anchor; j = t.path; v = t.v; w = t.w;
+                if (t.task == 0)
                 {
-                    for (int l = x[t.path]; l < path_distance[t.path].size(); l++)
+                    int p = M[cid][i].x + dist2begin[cid][j][t.v] + M[cid][i].c + Distance[cid][j][w]- 2;
+                    int range = dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x - G - 1;
+                    if (index[cid][j][w] != -1) // j \in paths(M[cid][i].v)
                     {
-                        if (path_distance[t.path][l].first > range)
+                        // Query after anchor deletion
+                        rmq = I[j].RMQ(0, M[cid][i].c - 1);
+
+                        if (rmq.first > infty)
                         {
-                            rmq_coor[t.path] = l;
+                            // Dynamic Array
+                            int loc_score = rmq.first + wt - p;
+                            if (C_p[i].s > C[i][j].s)
+                            {
+                                C[i][j].s = C_p[i].s;
+                                C[i][j].i = C_p[i].i;
+                                C[i][j].j = C_p[i].j;
+                                // C[i][j].j = j;
+                            }
+
+                            if (loc_score > C[i][j].s)
+                            {
+                                C[i][j].s = loc_score;
+                                C[i][j].i = rmq.second;
+                                C[i][j].j = j;
+                            }
+
+                            if (C[i][j].s > C_m[i].s)
+                            {
+                                C_m[i].s = C[i][j].s;
+                                C_m[i].i = C[i][j].i;
+                                C_m[i].j = C[i][j].j;
+                                // C_m[i].j = j;
+                            }
+                            
+                        }
+                    }else // last2reach
+                    {
+                        rmq = I[j].RMQ(0, M[cid][i].c - 1);
+                        if (rmq.first > infty){
+                            // Dynamic Array
+                            int loc_score = rmq.first + wt - p - recomb;
+                            if (loc_score > C_p[i].s)
+                            {
+                                C_p[i].s = loc_score;
+                                C_p[i].i = rmq.second;
+                                C_p[i].j = j;
+                            }
+                        }
+
+                        if (param_z) if (Distance[cid][j][w] > 0) std::cerr << "Distance : " << Distance[cid][j][w] << std::endl;
+                    }
+
+                    // Debug
+                    if(param_z) std::cerr << "CID: " << cid << " i: " << t.anchor << " j: " << t.path << " v : " << v << " top_v : "<<  t.top_v << " t.pos : " << t.pos << " t.task : " << t.task << " C[i][j]: " \ 
+                    << C[t.anchor][t.path].s << " p: " << p << " wt: " << wt << " recomb: " << recomb << " Distance: " << Distance[cid][j][w] << " dist2begin :" << dist2begin[cid][j][t.v] <<  "\n";
+
+                } else if (t.task == 1) // Update scores with maximum score with recombination
+                {
+                    // Dynamic Array
+                    int loc_score = C_m[i].s - recomb;
+                    if (loc_score > C[i][j].s)
+                    {
+                        C[i][j].s = loc_score;
+                        C[i][j].i = C_m[i].i;
+                        C[i][j].j = C_m[i].j;
+                    }
+
+                    // if (max_score < C[i][j].s)
+                    // {
+                    //     max_score = C[i][j].s;
+                    //     idx = i;
+                    //     path = j;
+                    // }
+
+                    // // Optimized Backtracking
+                    D.push_back({{C[i][j].s, C[i][j].i}, {i, j}}); // (score, index), index
+
+                } else
+                {
+                    int q = C[i][j].s + (int)M[cid][i].y + dist2begin[cid][j][v] + (int)M[cid][i].d; // krsna
+                    I[j].add(M[cid][i].d, {q, i});
+                }
+            }
+
+            if(param_z) std::cerr << "Chaining done for cid : " << cid << "\n";
+
+            // delete dynamic array
+            delete [] C_m;
+            delete [] C_p;
+            // Backtracking for read mapping and graph generation
+            if (N!=0)
+            {
+                std::vector<int> temp_chain; // temporary chain
+                std::vector<int> chain; // final chain
+                std::vector<bool> visited(N, false); // visited array
+
+                // // Sort D by a pair (score, index)
+                std::sort(D.begin(), D.end(), [](const std::pair<std::pair<int, int>, std::pair<int, int>> &a, const std::pair<std::pair<int, int>, std::pair<int, int>> &b) -> bool
+                {
+                    return std::tie(a.first.first, a.first.second, a.second.first, a.second.second) > std::tie(b.first.first, b.first.second, a.second.first, a.second.second); // sort by score and index
+                });
+
+                max_score = D[0].first.first;
+                idx = D[0].second.first;
+                path = D[0].second.second;
+
+                int prev_idx = 0;
+
+                int score = max_score;
+                int min_score = scale_factor * (float)(M[cid][0].d - M[cid][0].c + 1); // minimum score for a contig
+                int threshold_score = (float)tau_1 * score;
+
+                // print score and threshold_score
+                if(param_z) std::cerr << "CID: " << cid << " score: " << score << " threshold_score: " << threshold_score << "\n";
+
+                int best_cid_score = score; // best score for a contig
+                std::pair<std::vector<mg128_t>, int> chain_pair; // (chain, score)
+
+                bool flag; // chain is disjoint
+
+                int count_chains = 0; // count of anchors in chain
+                int count_anchors = 0; // count of anchors in chain
+                std::pair<std::pair<int, int>, int> anchor_id;
+
+                if (param_z) std::cerr << "Backtracking started for cid : " << cid << "\n";
+                while (max_score >= threshold_score && count_anchors < N && max_score >  min_score)
+                {
+                    int loc_min = std::numeric_limits<int>::max();
+                    int loc_max = std::numeric_limits<int>::min();
+                    count_chains++;
+                    int recombination = 0;
+                    // std::string prev_hap = walk_map[path];
+                    int prev_hap = path;
+                    int prev_i = idx;
+                    for (anchor_id = {{C[idx][path].s, idx}, path}; anchor_id.first.second != -1 && anchor_id.second != -1; anchor_id = {{C[anchor_id.first.second][anchor_id.second].s, C[anchor_id.first.second][anchor_id.second].i}, C[anchor_id.first.second][anchor_id.second].j}) // backtracking
+                    {
+                        flag = true; // chain is disjoint
+                        count_anchors++; // count anchors
+                        // count Recombination
+                        if (prev_hap != anchor_id.second)
+                        {
+                            recombination++;
+                            prev_hap = anchor_id.second;
+                        }
+                        if (visited[anchor_id.first.second] == true)
+                        {
+                            recombination = -1; // don't use recombinations for which there is no chain 
+                            flag = false; // chain is not disjoint
+                            temp_chain.clear(); // clear the chains which are not disjoint
+                            break;
+                        }else
+                        {
+                            temp_chain.push_back(anchor_id.first.second); // push anchor to temp_chain
+                            visited[anchor_id.first.second] = true; // mark anchor as visited
+                            chain_haps[cid].insert(walk_map[anchor_id.second]); // insert haplotype to chain_haps
+                        }
+
+                        if (param_z) // debug
+                        {
+                            std::cerr << " cid  : " << cid << " idx : " << anchor_id.first.second << " Hap : " << walk_map[anchor_id.second] <<  " parent : " << C[anchor_id.first.second][anchor_id.second].i << "," << C[anchor_id.first.second][anchor_id.second].j <<  " node : " \ 
+                            << M[cid][anchor_id.first.second].v << " C[i][j] : " << C[anchor_id.first.second][anchor_id.second].s << " M.y : " << M[cid][anchor_id.first.second].y  <<  \
+                            " M.d : " << M[cid][anchor_id.first.second].d << " size of chain :" << temp_chain.size() << " score : " << max_score << " threshold : " \
+                            << threshold_score << " Recombination : " << recombination <<  " Chain Count : " << count_chains << "\n";
+                        }
+                    }
+
+                    // count recombinations
+                    if (recombination != -1)
+                    {
+                        if (loc_max < recombination)
+                        {
+                            loc_max = recombination;
+                            loc_min = recombination;
+                        }
+                    }
+
+                    // Store the anchors if chain is disjoint and clear the keys
+                    if (flag == true && temp_chain.size() > 0 ) // minimap2 min_cnt
+                    {
+                        for (int i = 0; i < temp_chain.size(); i++)
+                        {
+                            chain.push_back(temp_chain[i]); // push anchor to chain
+                        }
+                        temp_chain.clear(); // clear the temp_chain
+                    }
+
+                    // Compute max score of C again considering the visited anchors
+                    // if(param_z) std::cerr << " Second pass for max_score computation started ... " << std::endl;
+                    max_score = std::numeric_limits<int>::min(); //{{std::numeric_limits<int>::min(), -1}, -1};
+                    for (int i = prev_idx; i < D.size(); i++) // O(N) time maximum score search
+                    {
+                        if (visited[D[i].second.first] == false) // only look on univisited anchors
+                        {
+                            max_score = D[i].first.first; // get the next maximum score
+                            prev_idx = i; // update the prev_idx
+                            idx = D[i].second.first; // update the idx
+                            path = D[i].second.second; // update the path
                             break;
                         }
-                        
-                    }
-                    // delete anchors from search tree which are not in a range of G
-                    for (int l = x[t.path]; l < rmq_coor[t.path]; l++)
-                    {
-                        key = path_distance[t.path][l].second;
-                        MAP[t.path].erase(key);
                     }
 
-                    // Update the pointer
-                    x[t.path] = rmq_coor[t.path];   
+                    // max_score = std::numeric_limits<int>::min(); //{{std::numeric_limits<int>::min(), -1}, -1};
+                    // for (int i = 0; i < N; i++)
+                    // {
+                    //     for (int j = 0; j < K; j++)
+                    //     {
+                    //         if (visited[i] == false && C[i][j].s > max_score)
+                    //         {
+                    //             max_score = C[i][j].s;
+                    //             idx = i;
+                    //             path = j;
+                    //         }
+                    //     }
+                    // }
+
+                    // For each chain add min/max recombination
+                    if (loc_max > 0)
+                    {
+                        max_loc[cid] += loc_max;
+                        min_loc[cid] += loc_min;
+                    }
+                    
+                    if(param_z) std::cerr << " Second pass for max_score computation finished ... " << std::endl;
+                    
                 }
-                // Minigraph gap cost
-                start_it = MAP[t.path].lower_bound({M[cid][t.anchor].c_, infty_int});
-                end_it = MAP[t.path].upper_bound({M[cid][t.anchor].d - 1, infty_int}); // overlap 
-                // // Maximize the score function from window query
-                std::pair<int64_t, int> max_cost = std::make_pair(_infty_int64, -1);
-                int h = 0; 
-                for (auto i = std::reverse_iterator(end_it); i != std::reverse_iterator(start_it) && h < max_itr; i++)
+                
+                
+                for (int i = 0; i < chain.size(); i++)
                 {
-                    int idx = i->second.first; // anchor_idx
-                    int v = i->second.second; // vertex
-                    int64_t Rd_2 = dist2begin[cid][t.path][v] + M[cid][idx].y + 1; // count of bases hence +1
-                    int64_t Qd_2 = M[cid][idx].d + 1;
-                    if (Rd_2 - 1 > range)
-                    {
-                        int64_t g = abs((Rd_1 - Rd_2) - (Qd_1 - Qd_2));
-                        int64_t d = std::min((Rd_1 - Rd_2), (Qd_1 - Qd_2));
-                        float log_pen = g >= 2 ? mg_log2(g) : 0.0f; // mg_log2() only works for dd>=2
-                        int64_t gap = (c_1*(float)g + c_2*(float)d + log_pen);
-                        weight = std::min(d, kmer_len);
-                        max_cost = max_cost.first > (C[idx].first - gap) ? max_cost : std::make_pair(C[idx].first - gap, idx); 
-                        C[t.anchor] = std::max(C[t.anchor], { weight + max_cost.first, max_cost.second});
-                        h++;
-                    }
+                    chain_pair.first.push_back(idx_Anchor[cid][chain[i]]); // push anchor to chain_pair
                 }
+                // add max score
+                chain_pair.second = best_cid_score; // push max score to chain_pair
+                best_chains[cid] = chain_pair; //   push chain_pair to best_chains
+            }
 
-            }else // update the priority of the anchor
+            for (int i = 0; i < N; i++)
             {
-                MAP[t.path][{M[cid][t.anchor].d, t.anchor}] = {t.anchor, t.v};
-                path_distance[t.path].push_back({(int64_t)(M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]), {M[cid][t.anchor].d, t.anchor}}); // (value, key) pair
+                delete [] C[i];
             }
         }
-        // Backtracking for read mapping and graph generation
-        if (N!=0)
+        // push loc_min and loc_max to min, max over all cids
+        int cid_ = 0;
+        for (size_t i = 0; i < num_cid; i++)
         {
-            int64_t max_score = 0; // maximum score
-            std::vector<mg128_t> temp_chain; // temporary chain
-            std::vector<mg128_t> chain; // final chain
-            std::vector<bool> visited(N, false); // visited array
-            // Create an array D and copy C to D
-            std::vector<std::pair<std::pair<int64_t, int>, int>> D; // (score, index), index
-            for (size_t i = 0; i < C.size(); i++)
+            if (max < max_loc[i])
             {
-                D.push_back({C[i], i}); // (score, index), index
+                max = max_loc[i];
+                cid_ = i;
             }
-            // Sort D by a pair (score, index)
-            std::sort(D.begin(), D.end(), [](const std::pair<std::pair<int64_t, int>, int> &a, const std::pair<std::pair<int64_t, int>, int> &b) -> bool
+        }
+        
+        min = std::min(min, min_loc[cid_]); // we will min recombination for cid which has max recombination
+        max_sum += max;
+    } else {
+        for (int cid = 0; cid < num_cid; cid++)
+        {
+            int N = M[cid].size(); // #Anchors
+            int K = path_cover[cid].size(); // #Paths
+            /* Initialise Search Trees */
+            /* Initialise T */
+            std::vector<Tuples> T; // Tuples of Anchors
+            std::vector<std::pair<int, int>> C; // Array of Cost of each Anchor
+            C.resize(N);
+            int cost =(int) (M[cid][0].d - M[cid][0].c + 1); // Cost of each Anchor
+            for (int j = 0; j < N; j++) // Add Tuple of Anchors
             {
-                return std::tie(a.first.first, a.first.second) > std::tie(b.first.first, b.first.second); // sort by score and index
-            });
-            // Find the minimum score
-            int min_score =  (M[cid][0].d - M[cid][0].c + 1); // minimum score for a contig
-            // Find the maximum score
-            std::pair<int64_t, int> chain_rmq = D[0].first; // Max value of (score, index)
-            int prev_idx = 0; // index of the maximum score
-            max_score = chain_rmq.first; // maximum score
-            int64_t threshold_score = is_ggen > 0 ? 1000 : tau_1*(float)max_score; // threshold score
-            int64_t best_cid_score = max_score; // best score for a contig
-            std::pair<std::vector<mg128_t>, int64_t> chain_pair; // (chain, score)
-            bool flag; // flag for disjoint chain
-            int count_anchors = 0; // count anchors
-            while (max_score >= threshold_score && count_anchors < N && max_score >  min_score) // at most N times
-            {
-                for (int anchor_id = D[prev_idx].second; anchor_id != -1 ; anchor_id = C[anchor_id].second) // backtracking
+                int node = M[cid][j].v;
+                int v = idx_component[cid][node];
+                for (int k = 0; k < K; k++)
                 {
-                    flag = true; // chain is disjoint
-                    count_anchors++; // count anchors keeps count of visted anchors
-                    if (visited[anchor_id] == true)
+                    if (index[cid][k][v] != -1) // v is on the path "k"
                     {
-                        flag = false; // chain is not disjoint
-                        temp_chain.clear(); // clear the chains which are not disjoint
-                        break;
-                    }else
+                        Tuples t;
+                        // for task 0
+                        t.anchor = j; // anchor id
+                        t.path = k; // path id
+                        t.pos = M[cid][j].x; // position of the anchor on a graph
+                        t.task = 0; // task id
+                        t.d = M[cid][j].d; // position of the anchor on a query
+                        t.v = v; // sorting purpose
+                        t.w = v; // vertex in which the anchor lies.
+                        t.top_v = map_top_sort[cid][v]; // Topological sorting of the vertex
+                        T.push_back(t); // Add Tuple
+                        // for task 1
+                        t.anchor = j;
+                        t.path = k;
+                        t.pos = M[cid][j].y;
+                        t.task = 1;
+                        t.d = M[cid][j].d;
+                        t.v = v; 
+                        t.w = v;
+                        t.top_v = map_top_sort[cid][v];
+                        T.push_back(t);
+                    }else if (last2reach[cid][k][v] != -1) // v is not on the path "k" and if last2reach exist
                     {
-                        temp_chain.push_back(idx_Anchor[cid][anchor_id]); // push anchor to temp_chain
-                        visited[anchor_id] = true; // mark anchor as visited
+                        int w = last2reach[cid][k][v]; // vertex -> Index
+                        w = rev_index[cid][k][w]; // index -> vertex
+                        int len = node_len[component_idx[cid][w]];
+                        // if first anchor exceeds distance then remove it
+                        int gap = Distance[cid][k][v] + M[cid][j].x - len + 1; // gap from last2reach node to the anchor on different node
+                        if (gap <= G)
+                        {
+                            Tuples t;
+                            // for task 0
+                            t.anchor = j;
+                            t.path = k;
+                            t.pos = std::numeric_limits<int>::max(); // Anchor lies at infinity distance on the graph
+                            t.task = 0;
+                            t.d = M[cid][j].d;
+                            t.v = w;
+                            t.w = v;
+                            t.top_v = map_top_sort[cid][w]; // Topological Sort
+                            T.push_back(t);
+                        }
+                    }   
+                }
+                /* Initialise C */
+                C[j] = {cost , -1};
+            }
+
+            // Initialize a pointer and a array.
+            std::vector<int> x(K,0); // pointer for the path
+            std::vector<int> rmq_coor(K,0); // current index of the anchor which lies outside the window
+            /* Erase redundant Tuples and Sort the Tuples by T.v, T.pos, T.task */ 
+            std::sort(T.begin(),T.end(),compare_T); // Sort Tuples
+            std::vector<std::vector<std::pair<int, std::pair<int, int>>>> path_distance(K); // path_distance[path][l] = (M[cid][t.anchor].y + dist2begin[cid][t.path][t.v] , anchor)
+            int infty_int = std::numeric_limits<int>::max();
+            int _infty_int64 = std::numeric_limits<int>::min();
+            std::pair<int, int> rmq; // rmq
+            std::pair<int, int> key;
+
+            float c_1 = expf(-div*(float)kmer_len), c_2 = 0.05*c_1; // penalities
+            if(!is_ggen) // minimap2 gap cost
+            {
+                c_1 = 0.01f * kmer_len; // minimap2
+                c_2 = 0.0f;
+            }
+
+            std::vector<std::map<std::pair<int, int>, std::pair<int, int>>> MAP(K);
+            std::map<std::pair<int, int>, std::pair<int, int>>::iterator start_it, end_it;
+
+            for (auto t:T) //  Process Tuples in the Lexicographic order of (rank(v), pos, task)
+            {
+                if(t.task == 0) // update the score
+                {
+                    int weight = (M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
+                    int range = (dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x - G - 1);
+                    int Rd_1 = (dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x);
+                    int Qd_1 = (M[cid][t.anchor].c);
+                    if (index[cid][t.path][t.v] != -1) // same path
+                    {
+                        for (int l = x[t.path]; l < path_distance[t.path].size(); l++)
+                        {
+                            if (path_distance[t.path][l].first > range)
+                            {
+                                rmq_coor[t.path] = l;
+                                break;
+                            }
+                            
+                        }
+                        // delete anchors from search tree which are not in a range of G
+                        for (int l = x[t.path]; l < rmq_coor[t.path]; l++)
+                        {
+                            key = path_distance[t.path][l].second;
+                            MAP[t.path].erase(key);
+                        }
+
+                        // Update the pointer
+                        x[t.path] = rmq_coor[t.path];   
+                    }
+                    // Minigraph gap cost
+                    start_it = MAP[t.path].lower_bound({M[cid][t.anchor].c_, infty_int});
+                    end_it = MAP[t.path].upper_bound({M[cid][t.anchor].d - 1, infty_int}); // overlap 
+                    // // Maximize the score function from window query
+                    std::pair<int, int> max_cost = std::make_pair(_infty_int64, -1);
+                    int h = 0; 
+                    for (auto i = std::reverse_iterator(end_it); i != std::reverse_iterator(start_it) && h < max_itr; i++)
+                    {
+                        int idx = i->second.first; // anchor_idx
+                        int v = i->second.second; // vertex
+                        int Rd_2 = dist2begin[cid][t.path][v] + M[cid][idx].y + 1; // count of bases hence +1
+                        int Qd_2 = M[cid][idx].d + 1;
+                        if (Rd_2 - 1 > range)
+                        {
+                            int g = abs((Rd_1 - Rd_2) - (Qd_1 - Qd_2));
+                            int d = std::min((Rd_1 - Rd_2), (Qd_1 - Qd_2));
+                            float log_pen = g >= 2 ? mg_log2(g) : 0.0f; // mg_log2() only works for dd>=2
+                            int gap = (c_1*(float)g + c_2*(float)d + log_pen);
+                            weight = std::min(d, kmer_len);
+                            max_cost = max_cost.first > (C[idx].first - gap) ? max_cost : std::make_pair(C[idx].first - gap, idx); 
+                            C[t.anchor] = std::max(C[t.anchor], { weight + max_cost.first, max_cost.second});
+                            h++;
+                        }
                     }
 
-                    if (param_z) // debug
-                    {
-                        std::cerr << " cid  : " << cid << " idx : " << anchor_id <<  " parent : " << C[anchor_id].second  <<  " node : " << M[cid][anchor_id].v << " C[j] : " << C[anchor_id].first << " M.y : " << M[cid][anchor_id].y  <<  " M.d : " << M[cid][anchor_id].d << " size of chain :" << temp_chain.size() << " score : " << max_score << " threshold : " << threshold_score << "\n";
-                    }
-                }
-                // Store the anchors if chain is disjoint and clear the keys
-                if (flag == true && temp_chain.size()) // minimap2 min_cnt
+                }else // update the priority of the anchor
                 {
-                    for (int i = 0; i < temp_chain.size(); i++)
-                    {
-                        chain.push_back(temp_chain[i]); // push anchor to chain
-                    }
-                    chain_count[cid]++;
-                    temp_chain.clear(); // clear the temp_chain
+                    MAP[t.path][{M[cid][t.anchor].d, t.anchor}] = {t.anchor, t.v};
+                    path_distance[t.path].push_back({(int)(M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]), {M[cid][t.anchor].d, t.anchor}}); // (value, key) pair
                 }
+            }
 
-                for (int i = prev_idx; i < D.size(); i++) // O(N) time maximum score search
-                {
-                    if (visited[D[i].second] == false)
-                    {
-                        chain_rmq = D[i].first; // get the next maximum score
-                        prev_idx = i; // update the prev_idx
-                        break;
-                    }
-                }
-                max_score = chain_rmq.first; // update the max_score
-            }
-            // push chain to chain_pair
-            for (int i = 0; i < chain.size(); i++)
+            // Backtracking for read mapping and graph generation
+            if (N!=0)
             {
-                chain_pair.first.push_back(chain[i]); // push anchor to chain_pair
+                int max_score = 0; // maximum score
+                std::vector<mg128_t> temp_chain; // temporary chain
+                std::vector<mg128_t> chain; // final chain
+                std::vector<bool> visited(N, false); // visited array
+                // Create an array D and copy C to D
+                std::vector<std::pair<std::pair<int, int>, int>> D; // (score, index), index
+                for (size_t i = 0; i < C.size(); i++)
+                {
+                    D.push_back({C[i], i}); // (score, index), index
+                }
+                // Sort D by a pair (score, index)
+                std::sort(D.begin(), D.end(), [](const std::pair<std::pair<int, int>, int> &a, const std::pair<std::pair<int, int>, int> &b) -> bool
+                {
+                    return std::tie(a.first.first, a.first.second) > std::tie(b.first.first, b.first.second); // sort by score and index
+                });
+                // Find the minimum score
+                int min_score =  (M[cid][0].d - M[cid][0].c + 1); // minimum score for a contig
+                // Find the maximum score
+                std::pair<int, int> chain_rmq = D[0].first; // Max value of (score, index)
+                int prev_idx = 0; // index of the maximum score
+                max_score = chain_rmq.first; // maximum score
+                int threshold_score = is_ggen > 0 ? 1000 : tau_1*(float)max_score; // threshold score
+                int best_cid_score = max_score; // best score for a contig
+                std::pair<std::vector<mg128_t>, int> chain_pair; // (chain, score)
+                bool flag; // flag for disjoint chain
+                int count_anchors = 0; // count anchors
+                while (max_score >= threshold_score && count_anchors < N && max_score >  min_score) // at most N times
+                {
+                    for (int anchor_id = D[prev_idx].second; anchor_id != -1 ; anchor_id = C[anchor_id].second) // backtracking
+                    {
+                        flag = true; // chain is disjoint
+                        count_anchors++; // count anchors keeps count of visted anchors
+                        if (visited[anchor_id] == true)
+                        {
+                            flag = false; // chain is not disjoint
+                            temp_chain.clear(); // clear the chains which are not disjoint
+                            break;
+                        }else
+                        {
+                            temp_chain.push_back(idx_Anchor[cid][anchor_id]); // push anchor to temp_chain
+                            visited[anchor_id] = true; // mark anchor as visited
+                        }
+
+                        if (param_z) // debug
+                        {
+                            std::cerr << " cid  : " << cid << " idx : " << anchor_id <<  " parent : " << C[anchor_id].second  <<  " node : " << M[cid][anchor_id].v << " C[j] : " << C[anchor_id].first << " M.y : " << M[cid][anchor_id].y  <<  " M.d : " << M[cid][anchor_id].d << " size of chain :" << temp_chain.size() << " score : " << max_score << " threshold : " << threshold_score << "\n";
+                        }
+                    }
+                    // Store the anchors if chain is disjoint and clear the keys
+                    if (flag == true && temp_chain.size()) // minimap2 min_cnt
+                    {
+                        for (int i = 0; i < temp_chain.size(); i++)
+                        {
+                            chain.push_back(temp_chain[i]); // push anchor to chain
+                        }
+                        chain_count[cid]++;
+                        temp_chain.clear(); // clear the temp_chain
+                    }
+
+                    for (int i = prev_idx; i < D.size(); i++) // O(N) time maximum score search
+                    {
+                        if (visited[D[i].second] == false)
+                        {
+                            chain_rmq = D[i].first; // get the next maximum score
+                            prev_idx = i; // update the prev_idx
+                            break;
+                        }
+                    }
+                    max_score = chain_rmq.first; // update the max_score
+                }
+                // push chain to chain_pair
+                for (int i = 0; i < chain.size(); i++)
+                {
+                    chain_pair.first.push_back(chain[i]); // push anchor to chain_pair
+                }
+                // add max score
+                chain_pair.second = best_cid_score; // push max score to chain_pair
+                best_chains[cid] = chain_pair; //   push chain_pair to best_chains
             }
-            // add max score
-            chain_pair.second = best_cid_score; // push max score to chain_pair
-            best_chains[cid] = chain_pair; //   push chain_pair to best_chains
         }
     }
-
     // Out of all "cids" pick one which has maximum score
-    int64_t max_score_ = best_chains[0].second; // Initializing max_score as the score of the first cid
+    int max_score_ = best_chains[0].second; // Initializing max_score as the score of the first cid
     int best_cid = 0; // Initializing best_cid as the first cid
     for (int cid = 0; cid < num_cid; cid++)
     {
@@ -1050,12 +1542,14 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         }
     }
     if(is_ggen){ // For graph generation
+        // std::cerr << " Graph Generation! " << std::endl;
+        // exit(0);
         best = best_chains[best_cid].first; // best is the chain of the best_cid
         std::reverse(best.begin(),best.end());
     }else
     {
         // Here we are using tau_2 as a threshold value and multiplying it with max_score_
-        int64_t threshold = tau_2 *(float)max_score_;
+        int threshold = tau_2 *(float)max_score_;
 
         // Now pick all the chains from all the cid which satisfies threshold
         std::vector<int> best_cids;
@@ -1083,11 +1577,336 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             }
         }
         // Reverse the order of the elements in best
-        std::reverse(best.begin(),best.end());
+        std::reverse(best.begin(), best.end());
+        std::vector<int> red_idx;
+        std::vector<int> count(node_len.size(), 0); // Initialize the count array with all 0s
+        /* Count the frequency of each node */
+        for (int i = 0; i < best.size(); i++) {
+            int node = (int)(best[i].x >> 32);
+            count[node]++;
+        }
+        /* Find the indices of anchors with frequency <= 5 */
+        if(!is_hprc_gfa && !is_hap)
+        {
+            for (int i = 0; i < best.size(); i++) {
+                int node = (int)(best[i].x >> 32);
+                if (count[node] <= 5) {
+                    red_idx.push_back(i);
+                }
+            }
+            if(param_z) std::cerr << "Not HPRC GFA!" << std::endl;
+        }else
+        {
+            for (int i = 0; i < best.size(); i++) {
+                int node = (int)(best[i].x >> 32);
+                if (count[node] < 1) { // pass everything
+                    red_idx.push_back(i);
+                }
+            }
+            if(param_z) std::cerr << "HPRC GFA!" << std::endl;
+
+            // compute precision and recall for recombinations
+            int true_rec = 0;
+            int chain_rec = 0;
+            std::vector<std::string> true_haplotypes;
+        
+            chain_rec = max_sum;
+
+            // Split the string into vector of strings by !
+            std::vector<std::string> qname_;
+            std::string delimiter = "!";
+            size_t pos = 0;
+            std::string token;
+            while ((pos = query_name.find(delimiter)) != std::string::npos) {
+                token = query_name.substr(0, pos);
+                qname_.push_back(token);
+                query_name.erase(0, pos + delimiter.length());
+            }
+            qname_.push_back(query_name);
+
+            accuracy = -1.0f;
+            if (qname_.size() > 2)
+            {
+                // Split the string into vector of strings by >
+                std::string delimiter2 = ">";
+                size_t pos2 = 0;
+                std::string token2;
+                while ((pos2 = qname_[2].find(delimiter2)) != std::string::npos) {
+                    token2 = qname_[2].substr(0, pos2);
+                    true_haplotypes.push_back(token2);
+                    qname_[2].erase(0, pos2 + delimiter2.length());
+                }
+                true_haplotypes.push_back(qname_[2]);
+
+                // remove NULL from true_haplotypes
+                true_haplotypes.erase(std::remove(true_haplotypes.begin(), true_haplotypes.end(), ""), true_haplotypes.end());
+
+                true_rec = true_haplotypes.size() - 1;
+                assert(true_rec == atoi(qname_[1].c_str()));
+
+                std::set<int> nodes;
+                for (auto hap:true_haplotypes)
+                {
+                    for (auto node:rev_walk_map[hap])
+                    {
+                        nodes.insert(node); // X
+                    }
+                }
+                std::set<int> nodes_chain;
+                for (size_t i = 0; i < best.size(); i++)
+                {
+                    int u = (int)(best[i].x >> 32);
+                    nodes_chain.insert(u); // Y
+                }
+                std::vector<int> common_nodes;
+                std::set_difference(nodes_chain.begin(), nodes_chain.end(), nodes.begin(), nodes.end(), std::back_inserter(common_nodes)); // Z
+
+                // accuracy = (float)1  - ((float)common_nodes.size()/(float)nodes_chain.size());
+
+                // std::cerr << "Accuracy : " << accuracy << "\n";
+
+                // // print first value of a set chain_haps[best_cid] 
+                // for (auto hap:chain_haps[best_cid])
+                // {
+                //     std::cerr << "Chain Haps : " << hap << "\n";
+                //     break;  
+                // }
+
+
+
+                // Do DP to find minimum recombination
+                int min_recomb = std::numeric_limits<int>::max();
+                std::map<std::string, std::vector<std::pair<int, std::pair<std::string, int>>>> C;
+                // Inialize C as \inf
+                for (auto hap:walk_ids)
+                {
+                    for (int i = 0; i < best.size(); i++)
+                    {
+                        C[hap].push_back({std::numeric_limits<int>::max(), {"-1", -1}});
+                    }
+                }
+
+                // Inialize C
+                int node = (int)(best[0].x >> 32);
+                for (auto hap:haps[node])
+                {
+                    C[hap][0] = {0, {"-1", -1}};
+                }
+
+                // Do DP
+                for (int i = 1; i < best.size(); i++)
+                {
+                    int node_1 = (int)(best[i].x >> 32);
+                    for (auto hap:haps[node_1])
+                    {
+                        int node_2 = (int)(best[i - 1].x >> 32);
+                        for (auto hap2:haps[node_2])
+                        {
+                            if (hap == hap2)
+                            {
+                                C[hap][i] = std::min(C[hap][i], {C[hap2][i-1].first, {hap2, i-1}});
+                            }else
+                            {
+                                C[hap][i] = std::min(C[hap][i], {C[hap2][i-1].first + 1, {hap2, i-1}});
+                            }
+                        }
+                    }
+                }
+
+                std::pair<int, std::pair<std::string, int>> min_dp_recomb = {std::numeric_limits<int>::max(), {"-1", -1}};
+                // Find the mimum recombination
+                for (auto hap:walk_ids)
+                {
+                    if (min_dp_recomb > C[hap][best.size() - 1])
+                    {
+                        min_dp_recomb = C[hap][best.size() - 1];
+                    }
+                }
+
+                std::vector<std::string> chained_haps;  
+                // Backtrack to find the haplotypes
+                for (auto parent = min_dp_recomb.second; parent.first != "-1" && parent.second != -1; parent = C[parent.first][parent.second].second)
+                {
+                    chained_haps.push_back(parent.first);
+                }
+
+                std::reverse(chained_haps.begin(), chained_haps.end());
+                // find unique haplotypes preseving the order
+                std::vector<std::string> unique_haps;
+                for (auto hap:chained_haps)
+                {
+                    if (std::find(unique_haps.begin(), unique_haps.end(), hap) == unique_haps.end())
+                    {
+                        unique_haps.push_back(hap);
+                    }
+                }
+                // push unique haplotypes to chained_haps
+                chained_haps = unique_haps; 
+                unique_haps.clear();
+
+                // for (auto hap:chained_haps)
+                // {
+                //     hap_seqs += ">" + hap;
+                // }
+
+                // make_pair
+                std::set<std::pair<std::string, std::string>> chain_hap_pair;
+                if (chained_haps.size() == 1) // When there is only one haplotype
+                {
+                    chain_hap_pair.insert({"S", chained_haps[0]}); 
+                    chain_hap_pair.insert({chained_haps[0], "E"});
+                }
+
+                for (int i = 0; i < chained_haps.size() - 1; i++)
+                {
+                    if (i == 0)
+                    {
+                        chain_hap_pair.insert({"S", chained_haps[i]});
+                        chain_hap_pair.insert({chained_haps[chained_haps.size() - 1], "E"});
+                    }
+                    chain_hap_pair.insert({chained_haps[i], chained_haps[i + 1]});
+                }
+
+                std::set<std::pair<std::string, std::string>> true_hap_pair;
+                if (true_haplotypes.size() == 1) // When there is only one haplotype
+                {
+                    true_hap_pair.insert({"S", true_haplotypes[0]});
+                    true_hap_pair.insert({true_haplotypes[0], "E"});
+                }
+                
+                for (int i = 0; i < true_haplotypes.size() - 1; i++)
+                {
+                    if (i == 0)
+                    {
+                        true_hap_pair.insert({"S", true_haplotypes[i]});
+                        true_hap_pair.insert({true_haplotypes[true_haplotypes.size() - 1], "E"});
+                    }
+                    true_hap_pair.insert({true_haplotypes[i], true_haplotypes[i + 1]});
+                }
+
+                // Compute precision and recall
+                int true_pos = 0;
+                int false_pos = 0;
+                int false_neg = 0;
+                
+                for (auto hap_pair:chain_hap_pair)
+                {
+                    if (true_hap_pair.find(hap_pair) != true_hap_pair.end())
+                    {
+                        true_pos++; // chain haplotype is in the true haplotype
+                    }else
+                    {
+                        false_pos++; // chain haplotype is not in the true haplotype
+                    }
+                }
+
+                for (auto hap_pair:true_hap_pair)
+                {
+                    if (chain_hap_pair.find(hap_pair) == chain_hap_pair.end())
+                    {
+                        false_neg++; // true haplotype is not in the chain
+                    }
+                }
+
+                // // print true_hap_pair
+                // for (auto hap_pair:true_hap_pair)
+                // {
+                //     std::cerr << "True Hap Pair : " << hap_pair.first << " " << hap_pair.second << "\n";
+                // }
+
+                // // print chain_hap_pair
+                // for (auto hap_pair:chain_hap_pair)
+                // {
+                //     std::cerr << "Chain Hap Pair : " << hap_pair.first << " " << hap_pair.second << "\n";
+                // }
+
+
+                precision = (float)true_pos/(float)(true_pos + false_pos);
+                recall = (float)true_pos/(float)(true_pos + false_neg);
+                // std::cerr << "Precision : " << precision << "\n";
+                // std::cerr << "Recall : " << recall << "\n";
+
+                // compute F1 
+                f1_score = 2.0f * ((precision * recall)/(precision + recall));
+                if (precision != 0.0f && recall != 0.0f)
+                {
+                    accuracy = f1_score;
+                }else
+                {
+                    accuracy = 0.0f;
+                }
+                
+                // std::cerr << "F1 : " << f1_score << "\n";
+
+                // exit(0);
+
+                // add chained_haps to hap_seqs with S and E and > sign 
+                hap_seqs += ">S";
+                for (auto hap:true_haplotypes)
+                {
+                    hap_seqs += ">" + hap;
+                }
+
+                hap_seqs += ">E";
+
+                hap_seqs += "!";
+
+                hap_seqs += ">S";
+
+                for (auto hap:chained_haps)
+                {
+                    hap_seqs += ">" + hap;
+                }
+
+                hap_seqs += ">E";
+                hap_seqs += "!";
+                hap_seqs += std::to_string(accuracy);
+
+                // std::cerr << "Hap Seqs : " << hap_seqs << "\n";
+
+                // for (auto hap_pair:true_hap_pair)
+                // {
+                //     hap_seqs += ">(" + hap_pair.first + "," + hap_pair.second + ")";
+                // }
+                // hap_seqs += "!";
+                // for (auto hap_pair:chain_hap_pair)
+                // {
+                //     hap_seqs += ">(" + hap_pair.first + "," + hap_pair.second + ")";
+                // }
+                // hap_seqs += "!";
+                // hap_seqs += std::to_string(accuracy);
+
+
+
+
+                // hap_seqs = "Precison: " + std::to_string(precision) + " Recall: " + std::to_string(recall) + " F1: " + std::to_string(f1_score);
+                // print precison recall and F1 together
+                // std::cerr << "Precision : " << precision << " Recall : " << recall << " F1 : " << f1_score << "\n";
+
+
+
+                min = std::numeric_limits<int>::max();
+                max = std::numeric_limits<int>::min();
+                max_sum = 0.0f;
+                min = std::min(min, min_dp_recomb.first); // we will min recombination for cid which has max recombination
+                max = std::max(max, min_dp_recomb.first); // we will max recombination for cid which has max recombination
+                max_sum += max;
+
+
+                // std::cerr << "Min DP Recombination : " << min_dp_recomb.first << " Haps : " << hap_seqs << "\n";
+
+            }
+
+        }
+        
+        /* Remove anchors from collected indices */
+        for (int i = red_idx.size() - 1; i >= 0; i--) {
+            best.erase(best.begin()+red_idx[i]);
+        }
     }
     if (param_z)
     {
-        std::cerr << " Number of Best Anchors : " << best.size() << "\n";
+        std::cerr << "Number of Best Anchors : " << best.size() << "\n";
     }
    return best; // return union of all the disjoint set of chains
 

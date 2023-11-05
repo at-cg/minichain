@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "minigraph.h"
+#include "string"
 
 #define MG_DBG_NO_KALLOC   0x1
 #define MG_DBG_QNAME       0x2
@@ -121,13 +122,18 @@ void radix_sort_128x(mg128_t *beg, mg128_t *end);
 void radix_sort_gfa64(uint64_t *beg, uint64_t *end);
 uint32_t ks_ksmall_uint32_t(size_t n, uint32_t arr[], size_t kk);
 
-void pass_par(bool &param_z, int &G);
+void pass_par(bool &param_z, int32_t &scale_factor, char* &graph_name, int &G, int32_t &recomb);
 struct params
 {
+	int32_t scale_factor;
 	bool param_z;
+	char* graph_name;
 	int G;
+	int32_t recomb;
 };
 
+
+void get_vars(int &min, int &max, int &max_sum, int &count, float &accuracy, std::string &hap_seqs);
 
 #ifdef __cplusplus
 }

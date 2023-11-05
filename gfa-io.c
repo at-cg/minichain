@@ -6,12 +6,94 @@
 #include "kstring.h"
 #include "gfa-priv.h"
 
+#include <cassert>
+
 #include "kseq.h"
 KSTREAM_INIT(gzFile, gzread, 65536)
 
 /***********
  * Tag I/O *
  ***********/
+
+static inline int gfa_aux_type2size(int x)
+{
+	if (x == 'C' || x == 'c' || x == 'A') return 1;
+	else if (x == 'S' || x == 's') return 2;
+	else if (x == 'I' || x == 'i' || x == 'f') return 4;
+	else return 0;
+}
+
+#define __skip_tag(s) do { \
+		int type = *(s); \
+		++(s); \
+		if (type == 'Z') { while (*(s)) ++(s); ++(s); } \
+		else if (type == 'B') (s) += 5 + gfa_aux_type2size(*(s)) * (*(int32_t*)((s)+1)); \
+		else (s) += gfa_aux_type2size(type); \
+	} while(0)
+
+uint8_t *gfa_aux_next(int32_t *l_rest, uint8_t **rest)
+{
+	uint8_t *s = (*rest) + 2, *ret = *rest;
+	if (*l_rest == 0) return 0;
+	__skip_tag(s);
+	*l_rest -= s - *rest;
+	*rest = s;
+	return ret;
+}
+
+
+void gfa_walk_flip(gfa_t *g)
+{
+	int32_t i, j;
+	int8_t *strand;
+	if (g->n_walk == 0) return;
+	GFA_CALLOC(strand, g->n_seg);
+	for (i = 0; i < g->n_walk; ++i) {
+		gfa_walk_t *w = &g->walk[i];
+		for (j = 0; j < w->n_v; ++j)
+			if (strand[w->v[j]>>1] == 0)
+				strand[w->v[j]>>1] = w->v[j]&1? -1 : 1;
+	}
+	for (i = 0; i < g->n_walk; ++i) {
+		gfa_walk_t *w = &g->walk[i];
+		int32_t n[2];
+		n[0] = n[1] = 0;
+		for (j = 0; j < w->n_v; ++j) {
+			int8_t s;
+			assert(strand[w->v[j]>>1] != 0);
+			s = w->v[j]&1? -1 : 1;
+			if (s == strand[w->v[j]>>1]) ++n[0];
+			else ++n[1];
+		}
+		if (n[0] >= n[1]) continue;
+		for (j = 0; j < w->n_v>>1; ++j) {
+			uint32_t t = w->v[j]^1;
+			w->v[j] = w->v[w->n_v - 1 - j]^1;
+			w->v[w->n_v - 1 - j] = t;
+		}
+		if (w->n_v&1) w->v[w->n_v>>1] ^= 1;
+		if (w->aux.l_aux > 0) { // reverse array tags
+			int32_t l_rest = w->aux.l_aux;
+			uint8_t *t, *rest = w->aux.aux;
+			while ((t = gfa_aux_next(&l_rest, &rest)) != 0) {
+				if (t[2] == 'B') {
+					int32_t ts, n;
+					ts = gfa_aux_type2size(t[3]);
+					memcpy(&n, t + 4, 4);
+					if (n == w->n_v) { // same size as the number of vertices
+						uint8_t buf[8];
+						for (j = 0; j < w->n_v>>1; ++j) {
+							memcpy(buf, t + 8 + j * ts, ts);
+							memcpy(t + 8 + j * ts, t + 8 + (w->n_v - 1 - j) * ts, ts);
+							memcpy(t + 8 + (w->n_v - 1 - j) * ts, buf, ts);
+						}
+					}
+				}
+			}
+		}
+	}
+	free(strand);
+}
 
 int gfa_aux_parse(char *s, uint8_t **data, int *max)
 {
@@ -263,6 +345,73 @@ int gfa_parse_L(gfa_t *g, char *s)
 	return 0;
 }
 
+int gfa_parse_W(gfa_t *g, char *s)
+{
+	char *p, *q, *ctg = 0, *sample = 0;
+	int32_t i, is_ok = 0;
+	char *rest;
+	gfa_walk_t t;
+	GFA_BZERO(&t, 1);
+	for (p = q = s + 2, i = 0;; ++p) {
+		t.sample = 0;
+		if (*p == 0 || *p == '\t') {
+			int32_t c = *p;
+			*p = 0;
+			if (i == 0) {
+				sample = q;
+			} else if (i == 1) {
+				t.hap = atoi(q);
+			} else if (i == 2) {
+				ctg = q;
+			} else if (i == 3) {
+				t.st = atol(q);
+			} else if (i == 4) {
+				t.en = atol(q);
+			} else if (i == 5) {
+				char *pp, *qq;
+				for (pp = q, t.n_v = 0; pp < p; ++pp)
+					if (*pp == '>' || *pp == '<')
+						t.n_v++;
+				GFA_MALLOC(t.v, t.n_v);
+				for (qq = q, pp = q + 1, t.n_v = 0; pp <= p; ++pp) {
+					if (pp == p || *pp == '>' || *pp == '<') {
+						int32_t a = *pp, seg;
+						*pp = 0;
+						seg = gfa_name2id(g, qq + 1);
+						if (seg >= 0) {
+							t.v[t.n_v++] = (uint32_t)seg<<1 | (*qq == '<');
+						} else {
+							if (gfa_verbose >= 2)
+								fprintf(stderr, "WARNING: failed to find segment '%s'\n", qq + 1);
+						}
+						*pp = a, qq = pp;
+					}
+				}
+				is_ok = 1, rest = c? p + 1 : 0;
+				break;
+			}
+			q = p + 1, ++i;
+			if (c == 0) break;
+		}
+	}
+	if (is_ok) {
+		int l_aux, m_aux = 0;
+		uint8_t *aux = 0;
+		l_aux = gfa_aux_parse(rest, &aux, &m_aux); // parse optional tags
+		t.sample = (char *)malloc((strlen(sample)+1)*sizeof(char));
+		// t.sample = gfa_sample_add(g, sample);
+		strcpy(t.sample, sample);
+		t.snid = gfa_sseq_add(g, ctg);
+		if (l_aux > 0)
+			t.aux.m_aux = m_aux, t.aux.l_aux = l_aux, t.aux.aux = aux;
+		else if (aux)
+			free(aux);
+		GFA_GROW(gfa_walk_t, g->walk, g->n_walk, g->m_walk);
+		g->walk[g->n_walk++] = t;
+	} else return -1;
+	return 0;
+}
+
 static gfa_seg_t *gfa_parse_fa_hdr(gfa_t *g, char *s)
 {
 	int32_t i;
@@ -324,10 +473,13 @@ gfa_t *gfa_read(const char *fn)
 		if (s.l < 3 || s.s[1] != '\t') continue; // empty line
 		if (s.s[0] == 'S') ret = gfa_parse_S(g, s.s);
 		else if (s.s[0] == 'L') ret = gfa_parse_L(g, s.s);
+		else if (s.s[0] == 'W') ret = gfa_parse_W(g, s.s);
 		if (ret < 0 && gfa_verbose >= 1)
 			fprintf(stderr, "[E] invalid %c-line at line %ld (error code %d)\n", s.s[0], (long)lineno, ret);
 	}
 	if (is_fa && fa_seg) gfa_update_fa_seq(g, fa_seg, fa_seq.l, fa_seq.s);
+	// Flip the wals
+	gfa_walk_flip(g);
 	free(fa_seq.s);
 	free(s.s);
 	gfa_finalize(g);

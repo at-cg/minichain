@@ -29,7 +29,7 @@ void mg_mapopt_init(mg_mapopt_t *mo)
 	mo->div = 0.1f;
 	mo->l_chn_pen_gap = 0.0f, mo->l_chn_pen_skip = 0.0f; // Added for linear chaining
 	mo->chn_pen_gap = 1.0f, mo->chn_pen_skip = 0.05f; 
-	mo->min_lc_cnt = 6, mo->min_lc_score = 0;  
+	mo->min_lc_cnt = 1, mo->min_lc_score = 0;  
 	mo->min_gc_cnt = 5, mo->min_gc_score = 50;
 	mo->gdp_max_ed = 10000;
 	mo->lc_max_trim = 50;
@@ -78,8 +78,6 @@ int mg_opt_set(const char *preset, mg_idxopt_t *io, mg_mapopt_t *mo, mg_ggopt_t 
 		mg_mapopt_init(mo);
 		mg_ggopt_init(go);
 	} else if (strcmp(preset, "lr") == 0) { // this is the default
-	} else if (strcmp(preset, "hap") == 0) { // -cx hap
-		mo->min_lc_cnt = 1, mo->min_lc_score = 0; // don't filter anchors in the chain
 	} else if (strcmp(preset, "asm") == 0 || strcmp(preset, "ggs") == 0) {
 		io->k = 19, io->w = 10;
 		mo->flag |= MG_M_RMQ;

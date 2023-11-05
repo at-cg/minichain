@@ -1,6 +1,7 @@
-## Reproduce
-Scripts are provided to reproduce the results. \
+## Reproduce Results for Minichain v1.0
+
 To reproduce the results, please execute the following commands
+
 ```
 sh reproduce.sh
 cd compare_errors

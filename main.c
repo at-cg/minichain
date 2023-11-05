@@ -8,6 +8,8 @@
 #include "graphUtils.h"
 #include <stdbool.h>
 #include <unistd.h>
+#include <climits>
+#include <string>
 
 #ifdef __linux__
 #include <sys/resource.h>
@@ -98,14 +100,16 @@ static inline void yes_or_no(uint64_t *flag_, uint64_t f, int long_idx, const ch
 
 int main(int argc, char *argv[])
 {
-	const char *opt_str = "G:a:s:z:x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:DSc";
+	const char *opt_str = "R:G:a:s:z:x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:DSc";
 	ketopt_t o = KETOPT_INIT;
 	mg_mapopt_t opt;
 	mg_idxopt_t ipt;
 	mg_ggopt_t gpt;
-	int i, c, ret, n_threads = sysconf(_SC_NPROCESSORS_ONLN); // get maximal threads as default
+	int i, c, ret, n_threads = sysconf(_SC_NPROCESSORS_ONLN); // get maximum threads as default
 	int G = 5000; // read mapping
 	bool z = false;
+	int32_t scale_factor = 200; // tested for UL long read mapping, upto 40K reads we don't need scale factor
+	int32_t recomb = 0;
 	char *s;
 	FILE *fp_help = stderr;
 	gfa_t *g;
@@ -137,6 +141,8 @@ int main(int argc, char *argv[])
 		else if (c == 't') n_threads = atoi(o.arg);
 		else if (c == 'z') z = atoi(o.arg);
 		else if (c == 'G') G = atoi(o.arg);
+		else if (c == 'R') recomb = atoi(o.arg);
+		else if (c == 's') scale_factor = atoi(o.arg);
 		else if (c == 'f') opt.occ_max1_frac = atof(o.arg);
 		else if (c == 'g') opt.max_gap = mm_parse_num(o.arg);
 		else if (c == 'F') opt.max_frag_len = mm_parse_num(o.arg);
@@ -244,6 +250,7 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -U INT[,INT] choose the minimizer occurrence threshold within this interval [%d,%d]\n", opt.occ_max1, opt.occ_max1_cap);
 		fprintf(fp_help, "    -j FLOAT     expected sequence divergence [%g]\n", opt.div);
 		fprintf(fp_help, "    -G NUM       stop chain enlongation if there are no minimizers in INT-bp [%d]\n", G);
+		fprintf(fp_help, "    -R NUM       Penalty for Recombinations INT-bp * scale factor [%d]\n", recomb);
 		fprintf(fp_help, "    -F NUM       max fragment length (effective with -xsr or in the fragment mode) [%d]\n", opt.max_frag_len);
 		fprintf(fp_help, "    -r NUM[,NUM] bandwidth for the two rounds of chaining [%d,%d]\n", opt.bw, opt.bw_long);
 		fprintf(fp_help, "    -n INT[,INT] minimal number of minimizers on a graph/linear chain [%d,%d]\n", opt.min_gc_cnt, opt.min_lc_cnt);
@@ -261,6 +268,7 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    --call       call the graph path in each bubble and output BED\n");
 		fprintf(fp_help, "  Input/output:\n");
 		fprintf(fp_help, "    -t INT       number of threads [%d]\n", n_threads);
+		fprintf(fp_help, "    -s INT       scale factor [%d]\n", scale_factor);
 		fprintf(fp_help, "    -o FILE      output mappings to FILE [stdout]\n");
 		fprintf(fp_help, "    -K NUM       minibatch size for mapping [500M]\n");
 		fprintf(fp_help, "    -S           output linear chains in * sName sLen nMz div sStart sEnd qStart qEnd\n");
@@ -274,7 +282,9 @@ int main(int argc, char *argv[])
 		return fp_help == stdout? 0 : 1;
 	}
 
-	pass_par(z, G);
+	// pass_par(z, G);
+	// minichain
+	pass_par(z, scale_factor, argv[o.ind], G, recomb);
 
 	g = gfa_read(argv[o.ind]);
 	if (g == 0) {
@@ -300,7 +310,21 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	int min, max, max_sum, count;
+	float accuracy;
+	std::string haps;
+	get_vars(min, max, max_sum, count, accuracy, haps);
+	float mean = (float)max_sum / (float)count;
+
 	if (mg_verbose >= 3) {
+		if (accuracy != -1.0f)
+		{
+			if (min != INT_MAX) {fprintf(stderr, "[M::%s] Recombinations [Min: %d, Max: %d, Mean: %f, Accuracy: %f]\n", __func__, min, max, mean, accuracy);};
+			if (min != INT_MAX) {fprintf(stderr, "[M::%s] Haplotype paths: %s\n", __func__, haps.c_str());};
+		}else
+		{
+			if (min != INT_MAX){fprintf(stderr, "[M::%s] Recombinations [Min: %d, Max: %d, Mean: %f]\n", __func__, min, max, mean);};	
+		}
 		fprintf(stderr, "[M::%s] Version: %s\n", __func__, MC_VERSION);
 		fprintf(stderr, "[M::%s] CMD:", __func__);
 		for (i = 0; i < argc; ++i)

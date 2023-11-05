@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include "gfa-priv.h"
 #include "kstring.h"
+#include <string>
 
 #include "khashl.h"
 KHASHL_MAP_INIT(KH_LOCAL, h_s2i_t, h_s2i, kh_cstr_t, uint32_t, kh_hash_str, kh_eq_str)
@@ -192,6 +193,32 @@ void gfa_arc_index(gfa_t *g)
 {
 	if (g->idx) free(g->idx);
 	g->idx = gfa_arc_index_core(g->n_seg, g->n_arc, g->arc);
+}
+
+/****************
+ * Walk related *
+ ****************/
+
+const char *gfa_sample_add(gfa_t *g, const char *name)
+{
+	h_s2i_t *h = (h_s2i_t*)g->h_samples;
+	khint_t k;
+	int absent;
+	k = h_s2i_put(h, name, &absent);
+	if (absent) {
+		kh_val(h, k) = g->n_sseq - 1;
+		kh_key(h, k) = gfa_strdup(name);
+	}
+	return kh_key(h, k);
+}
+
+
+int32_t gfa_sample_get(const gfa_t *g, const char *name)
+{
+	h_s2i_t *h = (h_s2i_t*)g->h_samples;
+	khint_t k;
+	k = h_s2i_get(h, name);
+	return k == kh_end(h)? -1 : kh_val(h, k);
 }
 
 /********************
