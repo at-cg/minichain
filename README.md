@@ -1,6 +1,6 @@
-# <div align="center">`Minichain`</div>
+# <div align="center">Minichain</div>
 
-## <div align="center">`Long-read Aligner to Pangenome Graphs`</div>
+## <div align="center">Long-read Aligner to Pangenome Graphs</div>
 
 ## <a name="started"></a>Getting Started
 
