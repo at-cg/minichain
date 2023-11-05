@@ -9,7 +9,7 @@
 - Subsequently, we align each haplotype back to the pangenome graph with [Minigraph](https://github.com/lh3/minigraph) using `-cx asm` flag and augment the corresponding haplotype paths as `W` lines in the graph.
 
 **Step 2:** Simulating Haplotypes
-- We simulate 135 MHC haplotypes, creating an imperfect mosaic of haplotype paths derived from the graph and recording the true haplotype paths.
+- We simulate 135 MHC haplotypes, creating a mosaic of haplotype paths derived from the graph and recording the true haplotype paths.
 - We split the simulated haplotypes into three groups, each consisting of 45 haplotypes, with substitution error rates of 0.1%, 1%, and 5%.
 
 **Step 3:** Alignment and Haplotype Switches
