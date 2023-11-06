@@ -1625,7 +1625,14 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
             qname_.push_back(query_name);
 
             accuracy = -1.0f;
-            if (qname_.size() > 2)
+
+            // print qname_
+            // for (auto qname:qname_)
+            // {
+            //     std::cerr << "Qname : " << qname << "\n";
+            // }
+            // exit(0);
+            if (qname_.size() == 3)
             {
                 // Split the string into vector of strings by >
                 std::string delimiter2 = ">";
