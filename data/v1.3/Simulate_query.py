@@ -122,7 +122,7 @@ for m in mutation_rates:
             
 
         idxs = []
-        for j in range(1, len(query) - 100):
+        for j in range(1, len(query)):
             idxs.append(j)
         random.shuffle(idxs)
 
