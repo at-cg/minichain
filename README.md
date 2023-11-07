@@ -15,14 +15,14 @@ cd minichain && make
 
 ```bash
 # Map sequence to haplotype-aware pangenome graph with Recombination penaly(R) 10000
-minichain -cx lr test/Graphs/C4-CHM13.gfa test/Genomes/C4-HG03492.2.fa -R10000 > C4-HG03492.2.gaf
+./minichain -cx lr test/Graphs/C4-CHM13.gfa test/Genomes/C4-HG03492.2.fa -R10000 > C4-HG03492.2.gaf
 ```
 
 ### Aligning sequence to pangenome graph ([rGFA](https://github.com/lh3/gfatools/blob/master/doc/rGFA.md#the-reference-gfa-rgfa-format)/[GFA v1.0](http://gfa-spec.github.io/GFA-spec/GFA1.html))
 
 ```bash
 # Map sequence to pangenome graph
-minichain -cx lr test/Graphs/C4-CHM13_mg.gfa test/Genomes/C4-HG03492.2.fa > C4-HG03492.2.gaf
+./minichain -cx lr test/Graphs/C4-CHM13_mg.gfa test/Genomes/C4-HG03492.2.fa > C4-HG03492.2.gaf
 ```
 
 ## Table of Contents
@@ -75,11 +75,11 @@ Users can run quick tests on [sample data](test/) using the following commands. 
 
 ```bash
 # Map sequence to sequence
-minichain -cx lr test/Genomes/C4-CHM13.fa test/Genomes/C4-HG03492.2.fa > C4-HG03492.2.paf
+./minichain -cx lr test/Genomes/C4-CHM13.fa test/Genomes/C4-HG03492.2.fa > C4-HG03492.2.paf
 # Map sequence to haplotype-aware pangenome graph with Recombination penaly(R) 10000
-minichain -cx lr test/Graphs/C4-CHM13.gfa test/Genomes/C4-HG03492.2.fa -R10000 > C4-HG03492.2.gaf
+./minichain -cx lr test/Graphs/C4-CHM13.gfa test/Genomes/C4-HG03492.2.fa -R10000 > C4-HG03492.2.gaf
 # Map sequence to pangenome graph
-minichain -cx lr test/Graphs/C4-CHM13_mg.gfa test/Genomes/C4-HG03492.2.fa > C4-HG03492.2.gaf
+./minichain -cx lr test/Graphs/C4-CHM13_mg.gfa test/Genomes/C4-HG03492.2.fa > C4-HG03492.2.gaf
 
 ```
 
@@ -89,7 +89,7 @@ Minichain can be used for the incremental graph generation. Sequences should be 
 
 ```sh
 # Incremental graph generation
-minichain -cxggs test/Genomes/C4-CHM13.fa test/Genomes/C4-HG002.1.fa test/Genomes/C4-HG002.2.fa > C4-CHM13.gfa
+./minichain -cxggs test/Genomes/C4-CHM13.fa test/Genomes/C4-HG002.1.fa test/Genomes/C4-HG002.2.fa > C4-CHM13.gfa
 ```
 
 ## <a name="bench"></a>Benchmark
