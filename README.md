@@ -109,7 +109,7 @@ We have benchmarked Minichain (v1.3) and demonstrated that the chained haplotype
 - We split the simulated haplotypes into three groups, each consisting of 45 haplotypes, with substitution error rates of 0.1%, 1%, and 5%.
 
 **Step 3:** Alignment and Haplotype Switches
-- The simulated MHC haplotypes are aligned to the MHC pangenome graph, and the chained haplotype paths are recorded.
+- The simulated MHC haplotypes are aligned to the MHC pangenome graph, and the chained haplotype paths are recorded with `-b1` parameter.
 
 **Step 4:** Evaluation Metrics
 - Using the information from true haplotype paths and chained haplotype paths, we compute both the Pearson correlation coefficient and F1-scores.

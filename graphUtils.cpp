@@ -77,27 +77,28 @@ void graphUtils::read_graph()
         for (size_t n = 0; n < g->walk[w].n_v; n++)
         {
             int v = g->walk[w].v[n];
-            walk.push_back((v)); // Forward Strand
+            // walk.push_back((v)); // Forward Strand
             haps[v].push_back(g->walk[w].sample); // Map walk to sample
-            rev_walk.push_back((v|1)); // Reverse Strand
-            rev_walk_map[g->walk[w].sample].push_back(v); // Map reverse walk to sample
+            // rev_walk.push_back((v|1)); // Reverse Strand
+            fwd_walk_map[g->walk[w].sample].push_back(v); // Map reverse walk to sample
+            rev_walk_map[g->walk[w].sample].push_back((v|1)); // Map reverse walk to sample
         }
 
         walk_ids.push_back(g->walk[w].sample);
 
         walk_map[w] = g->walk[w].sample;
-        walk_map[w + g->n_walk] = g->walk[w].sample;
-        // rev_walk_map[g->walk[w].sample].push_back(w);
-        // rev_walk_map[g->walk[w].sample].push_back(w + g->n_walk);
+        // walk_map[w + g->n_walk] = g->walk[w].sample;
+        // fwd_walk_map[g->walk[w].sample].push_back(w);
+        // fwd_walk_map[g->walk[w].sample].push_back(w + g->n_walk);
 
         // std::cerr << " haplotype : " << g->walk[w].sample << " walk id : " << w << std::endl; 
 
         if (param_z) std::cerr << "Walk id : " << walk_map[w]<< std::endl;
         
         // std::reverse(walk.begin(), walk.end()); // Just checking whether reverse is needed or not (We don't need)
-        std::reverse(rev_walk.begin(), rev_walk.end()); // Just checking whether reverse is needed or not (We don't need)
-        walks.push_back(walk);
-        rev_walks.push_back(rev_walk);
+        // std::reverse(rev_walk.begin(), rev_walk.end()); // Just checking whether reverse is needed or not (We don't need)
+        // walks.push_back(walk);
+        // rev_walks.push_back(rev_walk);
         walk.clear();
         rev_walk.clear();
     }
@@ -233,40 +234,30 @@ void graphUtils::Connected_components()
     // HPRC GFA
     if (is_hprc_gfa)
     {
-        local_walks.resize(num_cid);
-        // map walks to cids
-        std::vector<int> used_idxs(walks.size(), 0);
-        for (size_t w = 0; w < walks.size(); w++)
+        local_walks.resize(num_cid, std::vector<std::vector<int>>(num_walks));
+        for (auto walk : walk_map)
         {
+            std::reverse(rev_walk_map[walk.second].begin(), rev_walk_map[walk.second].end());
+        }
+
+        for (auto walk : walk_map)
+        {
+            int cid = component[fwd_walk_map[walk.second][0]];
             std::vector<int> temp;
-            // push walks to local_walks
-            int cid = component[walks[w][0]];
-            for (auto u_w : walks[w])
+            for (auto u_w : fwd_walk_map[walk.second])
             {
                 temp.push_back(idx_component[cid][u_w]);
             }
-            used_idxs[w] = cid;
-            local_walks[cid].push_back(temp);
+            local_walks[cid][walk.first] = temp;
             temp.clear();
-        }
 
-        for (size_t w = 0; w < rev_walks.size(); w++)
-        {
-            if (used_idxs[w] == 0) // Only push reverse for forward strand else leave
+            cid = component[rev_walk_map[walk.second][0]];
+            for (auto u_w : rev_walk_map[walk.second])
             {
-                int cid = component[rev_walks[w][0]];
-                if (cid != 0) // Don't push forward strand already pushed
-                {
-                    std::vector<int> temp;
-                    // push walks to local_walks
-                    for (auto u_w : rev_walks[w])
-                    {
-                        temp.push_back(idx_component[cid][u_w]);
-                    }
-                    local_walks[cid].push_back(temp);
-                    temp.clear();
-                }
+                temp.push_back(idx_component[cid][u_w]);
             }
+            local_walks[cid][walk.first] = temp;
+            temp.clear();
         }
     }
 }
@@ -898,6 +889,11 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
         // Recombinations count
         std::vector<int> min_loc(num_cid, 0), max_loc(num_cid, 0);
         count++; // Read count
+        std::vector<std::string> haps_seq_cid;
+        haps_seq_cid.resize(num_cid);
+        std::vector<float> acc_cid;
+        acc_cid.resize(num_cid);
+        
         for (int cid = 0; cid < num_cid; cid++)
         {
             int N = M[cid].size(); // #Anchors
@@ -1057,7 +1053,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                                 C[i][j].s = C_p[i].s;
                                 C[i][j].i = C_p[i].i;
                                 C[i][j].j = C_p[i].j;
-                                // C[i][j].j = j;
                             }
 
                             if (loc_score > C[i][j].s)
@@ -1072,7 +1067,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                                 C_m[i].s = C[i][j].s;
                                 C_m[i].i = C[i][j].i;
                                 C_m[i].j = C[i][j].j;
-                                // C_m[i].j = j;
                             }
                             
                         }
@@ -1116,7 +1110,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                     // }
 
                     // // Optimized Backtracking
-                    D.push_back({{C[i][j].s, C[i][j].i}, {i, j}}); // (score, index), index
+                    // D.push_back({{C[i][j].s, C[i][j].i}, {i, j}}); // (score, index), index
 
                 } else
                 {
@@ -1133,6 +1127,15 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
             // Backtracking for read mapping and graph generation
             if (N!=0)
             {
+
+                // Fill D Array
+                for (int i = 0; i < N; i++)
+                {
+                    for (int j = 0; j < K; j++)
+                    {
+                        D.push_back({{C[i][j].s, C[i][j].i}, {i, j}}); // (score, index), index
+                    }
+                }
                 std::vector<int> temp_chain; // temporary chain
                 std::vector<int> chain; // final chain
                 std::vector<bool> visited(N, false); // visited array
@@ -1166,6 +1169,10 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                 std::pair<std::pair<int, int>, int> anchor_id;
 
                 if (param_z) std::cerr << "Backtracking started for cid : " << cid << "\n";
+
+                accuracy = -1.0f;
+                float sum_acc = 0.0f;
+                int count_acc = 0;
                 while (max_score >= threshold_score && count_anchors < N && max_score >  min_score)
                 {
                     int loc_min = std::numeric_limits<int>::max();
@@ -1175,6 +1182,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                     // std::string prev_hap = walk_map[path];
                     int prev_hap = path;
                     int prev_i = idx;
+                    std::vector<std::string> chained_haps;
                     for (anchor_id = {{C[idx][path].s, idx}, path}; anchor_id.first.second != -1 && anchor_id.second != -1; anchor_id = {{C[anchor_id.first.second][anchor_id.second].s, C[anchor_id.first.second][anchor_id.second].i}, C[anchor_id.first.second][anchor_id.second].j}) // backtracking
                     {
                         flag = true; // chain is disjoint
@@ -1185,6 +1193,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                             recombination++;
                             prev_hap = anchor_id.second;
                         }
+                        chained_haps.push_back(walk_map[anchor_id.second]); // push haplotype to chained_haps
                         if (visited[anchor_id.first.second] == true)
                         {
                             recombination = -1; // don't use recombinations for which there is no chain 
@@ -1207,16 +1216,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                         }
                     }
 
-                    // count recombinations
-                    if (recombination != -1)
-                    {
-                        if (loc_max < recombination)
-                        {
-                            loc_max = recombination;
-                            loc_min = recombination;
-                        }
-                    }
-
                     // Store the anchors if chain is disjoint and clear the keys
                     if (flag == true && temp_chain.size() > 0 ) // minimap2 min_cnt
                     {
@@ -1225,6 +1224,303 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                             chain.push_back(temp_chain[i]); // push anchor to chain
                         }
                         temp_chain.clear(); // clear the temp_chain
+
+                        // Here we will compute the chained haps
+
+                        // compute precision and recall for recombinations
+                        int true_rec = 0;
+                        int chain_rec = 0;
+                        std::vector<std::string> true_haplotypes;
+                        chain_rec = max_sum;
+                        // Split the string into vector of strings by !
+                        std::vector<std::string> qname_;
+                        std::string delimiter = "!";
+                        size_t pos = 0;
+                        std::string token;
+                        while ((pos = query_name.find(delimiter)) != std::string::npos) {
+                            token = query_name.substr(0, pos);
+                            qname_.push_back(token);
+                            query_name.erase(0, pos + delimiter.length());
+                        }
+                        qname_.push_back(query_name);
+
+                        // // print qname_
+                        // for (auto q:qname_)
+                        // {
+                        //     std::cerr << "Qname : " << q << "\n";
+                        // }
+                        // exit(0);
+                        if (qname_.size() == 3)
+                        {
+                            float precision = 0.0f;
+                            float recall = 0.0f;
+                            float f1_score = 0.0f;
+                            // Split the string into vector of strings by >
+                            std::string delimiter2 = ">";
+                            size_t pos2 = 0;
+                            std::string token2;
+                            while ((pos2 = qname_[2].find(delimiter2)) != std::string::npos) {
+                                token2 = qname_[2].substr(0, pos2);
+                                true_haplotypes.push_back(token2);
+                                qname_[2].erase(0, pos2 + delimiter2.length());
+                            }
+                            true_haplotypes.push_back(qname_[2]);
+
+                            // remove NULL from true_haplotypes
+                            true_haplotypes.erase(std::remove(true_haplotypes.begin(), true_haplotypes.end(), ""), true_haplotypes.end());
+
+                            true_rec = true_haplotypes.size() - 1;
+                            assert(true_rec == atoi(qname_[1].c_str()));
+
+                            if (recomb == 0)
+                            {
+                                chained_haps.clear();
+                                std::vector<mg128_t> chained_anchors;
+                                for (auto idx:chain)
+                                {
+                                    chained_anchors.push_back(idx_Anchor[cid][idx]);
+                                }
+                                // reverse the chain
+                                std::reverse(chained_anchors.begin(), chained_anchors.end());
+                                
+                                // Do DP to find minimum recombination
+                                int min_recomb = std::numeric_limits<int>::max();
+                                std::map<std::string, std::vector<std::pair<int, std::pair<std::string, int>>>> C_;
+                                // Inialize C as \inf
+                                for (auto hap:walk_ids)
+                                {
+                                    for (int i = 0; i < chained_anchors.size(); i++)
+                                    {
+                                        C_[hap].push_back({std::numeric_limits<int>::max(), {"-1", -1}});
+                                    }
+                                }
+
+                                // Inialize C
+                                int node = (int)(chained_anchors[0].x >> 32);
+                                for (auto hap:haps[node])
+                                {
+                                    C_[hap][0] = {0, {"-1", -1}};
+                                }
+
+                                // Do DP
+                                for (int i = 1; i < chained_anchors.size(); i++)
+                                {
+                                    int node_1 = (int)(chained_anchors[i].x >> 32);
+                                    for (auto hap:haps[node_1])
+                                    {
+                                        int node_2 = (int)(chained_anchors[i - 1].x >> 32);
+                                        for (auto hap2:haps[node_2])
+                                        {
+                                            if (hap == hap2)
+                                            {
+                                                C_[hap][i] = std::min(C_[hap][i], {C_[hap2][i-1].first, {hap2, i-1}});
+                                            }else
+                                            {
+                                                C_[hap][i] = std::min(C_[hap][i], {C_[hap2][i-1].first + 1, {hap2, i-1}});
+                                            }
+                                        }
+                                    }
+                                }
+
+                                std::pair<int, std::pair<std::string, int>> min_dp_recomb = {std::numeric_limits<int>::max(), {"-1", -1}};
+                                // Find the mimum recombination
+                                for (auto hap:walk_ids)
+                                {
+                                    if (min_dp_recomb > C_[hap][chained_anchors.size() - 1])
+                                    {
+                                        min_dp_recomb = C_[hap][chained_anchors.size() - 1];
+                                    }
+                                }
+
+                                recombination = min_dp_recomb.first;
+
+                                // std::vector<std::string> chained_haps;  
+                                // Backtrack to find the haplotypes
+                                for (auto parent = min_dp_recomb.second; parent.first != "-1" && parent.second != -1; parent = C_[parent.first][parent.second].second)
+                                {
+                                    chained_haps.push_back(parent.first);
+                                }
+
+
+                                // std::vector<std::string> chained_haps;
+                                std::reverse(chained_haps.begin(), chained_haps.end());
+                                // find unique haplotypes preseving the order
+                                std::vector<std::string> unique_haps;
+                                for (auto hap:chained_haps)
+                                {
+                                    if (std::find(unique_haps.begin(), unique_haps.end(), hap) == unique_haps.end())
+                                    {
+                                        unique_haps.push_back(hap);
+                                    }
+                                }
+
+                                // push unique haplotypes to chained_haps
+                                chained_haps = unique_haps; 
+                                unique_haps.clear();
+
+                                // for (auto hap:chained_haps)
+                                // {
+                                //     hap_seqs += ">" + hap;
+                                // }
+                            }else
+                            {
+                                // std::vector<std::string> chained_haps;
+                                std::reverse(chained_haps.begin(), chained_haps.end());
+                                // find unique haplotypes preseving the order
+                                std::vector<std::string> unique_haps;
+                                for (auto hap:chained_haps)
+                                {
+                                    if (std::find(unique_haps.begin(), unique_haps.end(), hap) == unique_haps.end())
+                                    {
+                                        unique_haps.push_back(hap);
+                                    }
+                                }
+
+                                // push unique haplotypes to chained_haps
+                                chained_haps = unique_haps; 
+                                unique_haps.clear();
+
+                                // for (auto hap:chained_haps)
+                                // {
+                                //     hap_seqs += ">" + hap;
+                                // }
+                                // exit(0);
+                            }
+
+                            // make_pair
+                            std::set<std::pair<std::string, std::string>> chain_hap_pair;
+                            if (chained_haps.size() == 1) // When there is only one haplotype
+                            {
+                                chain_hap_pair.insert({"S", chained_haps[0]}); 
+                                chain_hap_pair.insert({chained_haps[0], "E"});
+                            }
+
+                            for (int i = 0; i < chained_haps.size() - 1; i++)
+                            {
+                                if (i == 0)
+                                {
+                                    chain_hap_pair.insert({"S", chained_haps[i]});
+                                    chain_hap_pair.insert({chained_haps[chained_haps.size() - 1], "E"});
+                                }
+                                chain_hap_pair.insert({chained_haps[i], chained_haps[i + 1]});
+                            }
+
+                            std::set<std::pair<std::string, std::string>> true_hap_pair;
+                            if (true_haplotypes.size() == 1) // When there is only one haplotype
+                            {
+                                true_hap_pair.insert({"S", true_haplotypes[0]});
+                                true_hap_pair.insert({true_haplotypes[0], "E"});
+                            }
+                            
+                            for (int i = 0; i < true_haplotypes.size() - 1; i++)
+                            {
+                                if (i == 0)
+                                {
+                                    true_hap_pair.insert({"S", true_haplotypes[i]});
+                                    true_hap_pair.insert({true_haplotypes[true_haplotypes.size() - 1], "E"});
+                                }
+                                true_hap_pair.insert({true_haplotypes[i], true_haplotypes[i + 1]});
+                            }
+
+                            // Compute precision and recall
+                            int true_pos = 0;
+                            int false_pos = 0;
+                            int false_neg = 0;
+                            
+                            for (auto hap_pair:chain_hap_pair)
+                            {
+                                if (true_hap_pair.find(hap_pair) != true_hap_pair.end())
+                                {
+                                    true_pos++; // chain haplotype is in the true haplotype
+                                }else
+                                {
+                                    false_pos++; // chain haplotype is not in the true haplotype
+                                }
+                            }
+
+                            for (auto hap_pair:true_hap_pair)
+                            {
+                                if (chain_hap_pair.find(hap_pair) == chain_hap_pair.end())
+                                {
+                                    false_neg++; // true haplotype is not in the chain
+                                }
+                            }
+
+                            // // print true_hap_pair
+                            // for (auto hap_pair:true_hap_pair)
+                            // {
+                            //     std::cerr << "True Hap Pair : " << hap_pair.first << " " << hap_pair.second << "\n";
+                            // }
+
+                            // // print chain_hap_pair
+                            // for (auto hap_pair:chain_hap_pair)
+                            // {
+                            //     std::cerr << "Chain Hap Pair : " << hap_pair.first << " " << hap_pair.second << "\n";
+                            // }
+
+
+                            precision = (float)true_pos/(float)(true_pos + false_pos);
+                            recall = (float)true_pos/(float)(true_pos + false_neg);
+                            // std::cerr << "Precision : " << precision << "\n";
+                            // std::cerr << "Recall : " << recall << "\n";
+
+                            // compute F1 
+                            float loc_acc = 0.0f;
+                            f1_score = 2.0f * ((precision * recall)/(precision + recall));
+                            if (precision != 0.0f && recall != 0.0f)
+                            {
+                                sum_acc = f1_score;
+                                loc_acc = f1_score;
+                            }else
+                            {
+                                sum_acc = 0.0f;
+                                loc_acc = 0.0f;
+                            }
+                            count_acc++;
+                            
+                            // std::cerr << "f1_score: " << f1_score << std::endl;
+                            // if (precision != 0.0f && recall != 0.0f) {
+                            //     accuracy = f1_score;
+                            //     std::cerr << "Accuracy updated to: " << accuracy << std::endl;
+                            // } else {
+                            //     accuracy = 0.0f;
+                            //     std::cerr << "Accuracy updated to: " << accuracy << std::endl;
+                            // }
+
+                            // add chained_haps to hap_seqs with S and E and > sign 
+                            haps_seq_cid[cid] += ">S";
+                            for (auto hap:true_haplotypes)
+                            {
+                                haps_seq_cid[cid] += ">" + hap;
+                            }
+
+                            haps_seq_cid[cid] += ">E";
+
+                            haps_seq_cid[cid] += "!";
+
+                            haps_seq_cid[cid] += ">S";
+
+                            for (auto hap:chained_haps)
+                            {
+                                haps_seq_cid[cid] += ">" + hap;
+                            }
+
+                            haps_seq_cid[cid] += ">E";
+                            haps_seq_cid[cid] += "!";
+                            haps_seq_cid[cid] += std::to_string(loc_acc);
+
+                            
+                        }
+                    }
+
+                    // count recombinations
+                    if (recombination != -1)
+                    {
+                        if (loc_max < recombination)
+                        {
+                            loc_max = recombination;
+                            loc_min = recombination;
+                        }
                     }
 
                     // Compute max score of C again considering the visited anchors
@@ -1242,20 +1538,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                         }
                     }
 
-                    // max_score = std::numeric_limits<int>::min(); //{{std::numeric_limits<int>::min(), -1}, -1};
-                    // for (int i = 0; i < N; i++)
-                    // {
-                    //     for (int j = 0; j < K; j++)
-                    //     {
-                    //         if (visited[i] == false && C[i][j].s > max_score)
-                    //         {
-                    //             max_score = C[i][j].s;
-                    //             idx = i;
-                    //             path = j;
-                    //         }
-                    //     }
-                    // }
-
                     // For each chain add min/max recombination
                     if (loc_max > 0)
                     {
@@ -1266,6 +1548,10 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                     if(param_z) std::cerr << " Second pass for max_score computation finished ... " << std::endl;
                     
                 }
+
+
+                acc_cid[cid] = sum_acc/(float)count_acc;
+                
                 
                 
                 for (int i = 0; i < chain.size(); i++)
@@ -1282,6 +1568,22 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                 delete [] C[i];
             }
         }
+        int max_f1_cid_ = 0;
+        float max_f1 = std::numeric_limits<float>::min();
+        for (int cid = 0; cid < num_cid; cid++)
+        {
+            if (max_f1 < acc_cid[cid])
+            {
+                max_f1 = acc_cid[cid];
+                max_f1_cid_ = cid;
+            }
+        }
+        accuracy = max_f1;
+        hap_seqs = haps_seq_cid[max_f1_cid_];
+        // // Just for testing
+        // std::cerr << "Accuracy : " << accuracy << std::endl;
+        // std::cerr << "Hap Seqs : " << hap_seqs << std::endl;
+        // exit(0);
         // push loc_min and loc_max to min, max over all cids
         int cid_ = 0;
         for (size_t i = 0; i < num_cid; i++)
@@ -1604,306 +1906,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                 }
             }
             if(param_z) std::cerr << "HPRC GFA!" << std::endl;
-
-            // compute precision and recall for recombinations
-            int true_rec = 0;
-            int chain_rec = 0;
-            std::vector<std::string> true_haplotypes;
-        
-            chain_rec = max_sum;
-
-            // Split the string into vector of strings by !
-            std::vector<std::string> qname_;
-            std::string delimiter = "!";
-            size_t pos = 0;
-            std::string token;
-            while ((pos = query_name.find(delimiter)) != std::string::npos) {
-                token = query_name.substr(0, pos);
-                qname_.push_back(token);
-                query_name.erase(0, pos + delimiter.length());
-            }
-            qname_.push_back(query_name);
-
-            accuracy = -1.0f;
-
-            // print qname_
-            // for (auto qname:qname_)
-            // {
-            //     std::cerr << "Qname : " << qname << "\n";
-            // }
-            // exit(0);
-            if (qname_.size() == 3)
-            {
-                // Split the string into vector of strings by >
-                std::string delimiter2 = ">";
-                size_t pos2 = 0;
-                std::string token2;
-                while ((pos2 = qname_[2].find(delimiter2)) != std::string::npos) {
-                    token2 = qname_[2].substr(0, pos2);
-                    true_haplotypes.push_back(token2);
-                    qname_[2].erase(0, pos2 + delimiter2.length());
-                }
-                true_haplotypes.push_back(qname_[2]);
-
-                // remove NULL from true_haplotypes
-                true_haplotypes.erase(std::remove(true_haplotypes.begin(), true_haplotypes.end(), ""), true_haplotypes.end());
-
-                true_rec = true_haplotypes.size() - 1;
-                assert(true_rec == atoi(qname_[1].c_str()));
-
-                std::set<int> nodes;
-                for (auto hap:true_haplotypes)
-                {
-                    for (auto node:rev_walk_map[hap])
-                    {
-                        nodes.insert(node); // X
-                    }
-                }
-                std::set<int> nodes_chain;
-                for (size_t i = 0; i < best.size(); i++)
-                {
-                    int u = (int)(best[i].x >> 32);
-                    nodes_chain.insert(u); // Y
-                }
-                std::vector<int> common_nodes;
-                std::set_difference(nodes_chain.begin(), nodes_chain.end(), nodes.begin(), nodes.end(), std::back_inserter(common_nodes)); // Z
-
-                // accuracy = (float)1  - ((float)common_nodes.size()/(float)nodes_chain.size());
-
-                // std::cerr << "Accuracy : " << accuracy << "\n";
-
-                // // print first value of a set chain_haps[best_cid] 
-                // for (auto hap:chain_haps[best_cid])
-                // {
-                //     std::cerr << "Chain Haps : " << hap << "\n";
-                //     break;  
-                // }
-
-
-
-                // Do DP to find minimum recombination
-                int min_recomb = std::numeric_limits<int>::max();
-                std::map<std::string, std::vector<std::pair<int, std::pair<std::string, int>>>> C;
-                // Inialize C as \inf
-                for (auto hap:walk_ids)
-                {
-                    for (int i = 0; i < best.size(); i++)
-                    {
-                        C[hap].push_back({std::numeric_limits<int>::max(), {"-1", -1}});
-                    }
-                }
-
-                // Inialize C
-                int node = (int)(best[0].x >> 32);
-                for (auto hap:haps[node])
-                {
-                    C[hap][0] = {0, {"-1", -1}};
-                }
-
-                // Do DP
-                for (int i = 1; i < best.size(); i++)
-                {
-                    int node_1 = (int)(best[i].x >> 32);
-                    for (auto hap:haps[node_1])
-                    {
-                        int node_2 = (int)(best[i - 1].x >> 32);
-                        for (auto hap2:haps[node_2])
-                        {
-                            if (hap == hap2)
-                            {
-                                C[hap][i] = std::min(C[hap][i], {C[hap2][i-1].first, {hap2, i-1}});
-                            }else
-                            {
-                                C[hap][i] = std::min(C[hap][i], {C[hap2][i-1].first + 1, {hap2, i-1}});
-                            }
-                        }
-                    }
-                }
-
-                std::pair<int, std::pair<std::string, int>> min_dp_recomb = {std::numeric_limits<int>::max(), {"-1", -1}};
-                // Find the mimum recombination
-                for (auto hap:walk_ids)
-                {
-                    if (min_dp_recomb > C[hap][best.size() - 1])
-                    {
-                        min_dp_recomb = C[hap][best.size() - 1];
-                    }
-                }
-
-                std::vector<std::string> chained_haps;  
-                // Backtrack to find the haplotypes
-                for (auto parent = min_dp_recomb.second; parent.first != "-1" && parent.second != -1; parent = C[parent.first][parent.second].second)
-                {
-                    chained_haps.push_back(parent.first);
-                }
-
-                std::reverse(chained_haps.begin(), chained_haps.end());
-                // find unique haplotypes preseving the order
-                std::vector<std::string> unique_haps;
-                for (auto hap:chained_haps)
-                {
-                    if (std::find(unique_haps.begin(), unique_haps.end(), hap) == unique_haps.end())
-                    {
-                        unique_haps.push_back(hap);
-                    }
-                }
-                // push unique haplotypes to chained_haps
-                chained_haps = unique_haps; 
-                unique_haps.clear();
-
-                // for (auto hap:chained_haps)
-                // {
-                //     hap_seqs += ">" + hap;
-                // }
-
-                // make_pair
-                std::set<std::pair<std::string, std::string>> chain_hap_pair;
-                if (chained_haps.size() == 1) // When there is only one haplotype
-                {
-                    chain_hap_pair.insert({"S", chained_haps[0]}); 
-                    chain_hap_pair.insert({chained_haps[0], "E"});
-                }
-
-                for (int i = 0; i < chained_haps.size() - 1; i++)
-                {
-                    if (i == 0)
-                    {
-                        chain_hap_pair.insert({"S", chained_haps[i]});
-                        chain_hap_pair.insert({chained_haps[chained_haps.size() - 1], "E"});
-                    }
-                    chain_hap_pair.insert({chained_haps[i], chained_haps[i + 1]});
-                }
-
-                std::set<std::pair<std::string, std::string>> true_hap_pair;
-                if (true_haplotypes.size() == 1) // When there is only one haplotype
-                {
-                    true_hap_pair.insert({"S", true_haplotypes[0]});
-                    true_hap_pair.insert({true_haplotypes[0], "E"});
-                }
-                
-                for (int i = 0; i < true_haplotypes.size() - 1; i++)
-                {
-                    if (i == 0)
-                    {
-                        true_hap_pair.insert({"S", true_haplotypes[i]});
-                        true_hap_pair.insert({true_haplotypes[true_haplotypes.size() - 1], "E"});
-                    }
-                    true_hap_pair.insert({true_haplotypes[i], true_haplotypes[i + 1]});
-                }
-
-                // Compute precision and recall
-                int true_pos = 0;
-                int false_pos = 0;
-                int false_neg = 0;
-                
-                for (auto hap_pair:chain_hap_pair)
-                {
-                    if (true_hap_pair.find(hap_pair) != true_hap_pair.end())
-                    {
-                        true_pos++; // chain haplotype is in the true haplotype
-                    }else
-                    {
-                        false_pos++; // chain haplotype is not in the true haplotype
-                    }
-                }
-
-                for (auto hap_pair:true_hap_pair)
-                {
-                    if (chain_hap_pair.find(hap_pair) == chain_hap_pair.end())
-                    {
-                        false_neg++; // true haplotype is not in the chain
-                    }
-                }
-
-                // // print true_hap_pair
-                // for (auto hap_pair:true_hap_pair)
-                // {
-                //     std::cerr << "True Hap Pair : " << hap_pair.first << " " << hap_pair.second << "\n";
-                // }
-
-                // // print chain_hap_pair
-                // for (auto hap_pair:chain_hap_pair)
-                // {
-                //     std::cerr << "Chain Hap Pair : " << hap_pair.first << " " << hap_pair.second << "\n";
-                // }
-
-
-                precision = (float)true_pos/(float)(true_pos + false_pos);
-                recall = (float)true_pos/(float)(true_pos + false_neg);
-                // std::cerr << "Precision : " << precision << "\n";
-                // std::cerr << "Recall : " << recall << "\n";
-
-                // compute F1 
-                f1_score = 2.0f * ((precision * recall)/(precision + recall));
-                if (precision != 0.0f && recall != 0.0f)
-                {
-                    accuracy = f1_score;
-                }else
-                {
-                    accuracy = 0.0f;
-                }
-                
-                // std::cerr << "F1 : " << f1_score << "\n";
-
-                // exit(0);
-
-                // add chained_haps to hap_seqs with S and E and > sign 
-                hap_seqs += ">S";
-                for (auto hap:true_haplotypes)
-                {
-                    hap_seqs += ">" + hap;
-                }
-
-                hap_seqs += ">E";
-
-                hap_seqs += "!";
-
-                hap_seqs += ">S";
-
-                for (auto hap:chained_haps)
-                {
-                    hap_seqs += ">" + hap;
-                }
-
-                hap_seqs += ">E";
-                hap_seqs += "!";
-                hap_seqs += std::to_string(accuracy);
-
-                // std::cerr << "Hap Seqs : " << hap_seqs << "\n";
-
-                // for (auto hap_pair:true_hap_pair)
-                // {
-                //     hap_seqs += ">(" + hap_pair.first + "," + hap_pair.second + ")";
-                // }
-                // hap_seqs += "!";
-                // for (auto hap_pair:chain_hap_pair)
-                // {
-                //     hap_seqs += ">(" + hap_pair.first + "," + hap_pair.second + ")";
-                // }
-                // hap_seqs += "!";
-                // hap_seqs += std::to_string(accuracy);
-
-
-
-
-                // hap_seqs = "Precison: " + std::to_string(precision) + " Recall: " + std::to_string(recall) + " F1: " + std::to_string(f1_score);
-                // print precison recall and F1 together
-                // std::cerr << "Precision : " << precision << " Recall : " << recall << " F1 : " << f1_score << "\n";
-
-
-
-                min = std::numeric_limits<int>::max();
-                max = std::numeric_limits<int>::min();
-                max_sum = 0.0f;
-                min = std::min(min, min_dp_recomb.first); // we will min recombination for cid which has max recombination
-                max = std::max(max, min_dp_recomb.first); // we will max recombination for cid which has max recombination
-                max_sum += max;
-
-
-                // std::cerr << "Min DP Recombination : " << min_dp_recomb.first << " Haps : " << hap_seqs << "\n";
-
-            }
-
         }
         
         /* Remove anchors from collected indices */

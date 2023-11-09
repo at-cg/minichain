@@ -100,7 +100,7 @@ static inline void yes_or_no(uint64_t *flag_, uint64_t f, int long_idx, const ch
 
 int main(int argc, char *argv[])
 {
-	const char *opt_str = "R:G:a:s:z:x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:DSc";
+	const char *opt_str = "R:G:a:s:z:x:k:w:t:r:m:n:g:K:o:p:N:Pq:d:l:f:U:M:F:j:L:b:DSc";
 	ketopt_t o = KETOPT_INIT;
 	mg_mapopt_t opt;
 	mg_idxopt_t ipt;
@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
 	bool z = false;
 	int32_t scale_factor = 200; // tested for UL long read mapping, upto 40K reads we don't need scale factor
 	int32_t recomb = 0;
+	bool benchmark = false;
 	char *s;
 	FILE *fp_help = stderr;
 	gfa_t *g;
@@ -140,6 +141,7 @@ int main(int argc, char *argv[])
 		else if (c == 'k') ipt.k = atoi(o.arg);
 		else if (c == 't') n_threads = atoi(o.arg);
 		else if (c == 'z') z = atoi(o.arg);
+		else if (c == 'b') benchmark = atoi(o.arg);
 		else if (c == 'G') G = atoi(o.arg);
 		else if (c == 'R') recomb = atoi(o.arg);
 		else if (c == 's') scale_factor = atoi(o.arg);
@@ -259,6 +261,7 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "    -N INT       retain at most INT secondary mappings [%d]\n", opt.best_n);
 		fprintf(fp_help, "    -D           skip self diagonal matches\n");
 		fprintf(fp_help, "    -z BOOL      print chain information [%d]\n", z);
+		fprintf(fp_help, "    -b BOOL      Becnhmark simulated queries [%d]\n", benchmark);
 		fprintf(fp_help, "  Graph generation:\n");
 		fprintf(fp_help, "    --ggen       perform incremental graph generation\n");
 		fprintf(fp_help, "    -q INT       min mapping quality [%d]\n", gpt.min_mapq);
@@ -317,7 +320,7 @@ int main(int argc, char *argv[])
 	float mean = (float)max_sum / (float)count;
 
 	if (mg_verbose >= 3) {
-		if (accuracy != -1.0f)
+		if (benchmark)
 		{
 			if (min != INT_MAX) {fprintf(stderr, "[M::%s] Recombinations [Min: %d, Max: %d, Mean: %f, Accuracy: %f]\n", __func__, min, max, mean, accuracy);};
 			if (min != INT_MAX) {fprintf(stderr, "[M::%s] Haplotype paths: %s\n", __func__, haps.c_str());};

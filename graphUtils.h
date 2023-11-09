@@ -141,12 +141,10 @@ class graphUtils
         std::vector<std::string> walk_ids;
         std::map<int, std::vector<std::string>> haps;
         std::map<std::string, std::vector<int>> rev_walk_map;
+        std::map<std::string, std::vector<int>> fwd_walk_map;
         std::vector<int> ref_query;
         float accuracy = 0.0f;
         int num_walks = 0;
-        float precision = 0.0f;
-        float recall = 0.0f;
-        float f1_score = 0.0f;
 
         graphUtils(gfa_t *g);	// This is constructor
 

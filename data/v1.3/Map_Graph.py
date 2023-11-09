@@ -187,7 +187,7 @@ for m in mutation_rates:
             return min_ # count of minimum recombination
 
         print("Processing R = " + r + " and " + h)
-        cmd = "bin/minichain -t1 -cx lr " + graph + " " + h + " -R" + r + " --vc -o " + align_dir + "/R"+ r + "_" + h.split('/')[1].split('.fa')[0] + ".gaf"
+        cmd = "bin/minichain -t1 -cx lr -b1 " + graph + " " + h + " -R" + r + " --vc -o " + align_dir + "/R"+ r + "_" + h.split('/')[1].split('.fa')[0] + ".gaf"
         # cmd = "minigraph -t1 -cx lr " + graph + " " + h + " > align/R"+ r + "_" + h.split('/')[1].split('.fasta')[0] + ".gaf"
         out = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
         out = out.decode("utf-8")
