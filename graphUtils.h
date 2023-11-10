@@ -22,7 +22,7 @@
 
 // Score
 struct Score {
-	int s;
+	int64_t s;
     int i;
     int j;
 };
@@ -510,5 +510,5 @@ struct Treap {
 
 typedef Treap<std::pair<int, int>, std::pair<std::pair<int, int>, int>> IndexT;
 
-typedef Treap<int, std::pair<int, int>> IndexX;
+typedef Treap<int, std::pair<int64_t, int>> IndexX;
 #endif

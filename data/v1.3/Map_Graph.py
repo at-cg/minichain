@@ -65,7 +65,6 @@ for m in mutation_rates:
     count_recomb = {}
     align_ids = []
     R = ['0', '1000', '10000', '100000', '1000000', '2000000000']
-    # R = ['10000']
 
     h_gfa = []
     for i in fasta_files:
@@ -219,11 +218,10 @@ for m in mutation_rates:
 
 
 
-    # run in parallel and print the timeß
+    # run in parallel and print the time taken
     print("Generating Alignment Files ...")
     start_time = time.time()
-    x = int(threads/len(R)) # number of threads
-    pool = multiprocessing.Pool(processes= x * len(R))
+    pool = multiprocessing.Pool(processes= threads)
     pool.map(align_gfa, h_gfa)
     print("Time taken to generate alignment files : " + str(time.time() - start_time))
 

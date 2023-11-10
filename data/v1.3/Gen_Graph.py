@@ -378,7 +378,7 @@ for h, haplotypes in fasta_gfa_2:
         print("Error: walks and w_lines length not same")
         sys.exit(2)
 
-    print("Graph : " + graph + " Number of Verices : " + str(len(haps)))
+    print("Graph : " + graph + " Number of Vertices : " + str(len(haps)))
 
     # remove all gaf files
     for gaf in gaf_files:
