@@ -88,9 +88,9 @@ os.system("source ~/.bashrc && conda create --force -n MC -y && conda activate M
 # Generate the graph
 os.system("python3 Gen_Graph.py -t " + str(threads))
 # Simulate queries
-os.system("python3 Simulate_query.py -t " + str(threads))
+os.system("source ~/.bashrc && conda activate MC && python3 Simulate_query.py -t " + str(threads))
 # Map the queries
-os.system("python3 Map_Graph.py -t " + str(threads))
+os.system("source ~/.bashrc && conda activate MC && python3 Map_Graph.py -t " + str(threads))
 # Plot the results
 os.system("source ~/.bashrc && conda activate MC && python3 Plot.py")
 

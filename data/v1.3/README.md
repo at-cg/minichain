@@ -21,8 +21,10 @@
 **Step 5:** Result Visualization
 - The generated plots will be saved in a folder labeled "align_x," where 'x' represents the substitution rate.
 
-To reproduce the results, execute the following commands:
+## Dependencies
+[Miniconda](https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html) must be installed as a requirement.
 
+### To reproduce the results, execute the following commands:
 ```bash
 chmod +x Reproduce.py
 ./Reproduce.py -t4
