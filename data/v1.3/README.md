@@ -1,5 +1,5 @@
 # Reproducing results for Minichain v1.3
-We assume that [conda]() is installed and available in your path. To confirm, please run `which conda` 
+We assume that [conda](https://docs.conda.io/en/latest/) is installed and available in your path. To confirm, please run `which conda` 
 ## To reproduce the results, execute the following commands:
 ```bash
 chmod +x Reproduce.py
