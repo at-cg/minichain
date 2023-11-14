@@ -7,7 +7,7 @@ chmod +x Reproduce.py
 ```
 Here `-t4` represents the thread count. The memory required is about `15` GB per thread. We recommend  setting the maximum thread count based on the hardware.
 
-### Benchmarking methodolody
+## Benchmarking methodolody
 
 **Step 1:** Data preparation
 - Download 61 major histocompatibility complex (MHC) sequences from the Human Pangenome Reference Consortium (HPRC). These are available on [Zenodo](https://zenodo.org/records/6617246).
