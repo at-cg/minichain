@@ -89,7 +89,7 @@ Minichain can be used for the incremental graph generation. Sequences should be 
 ./minichain -cxggs test/Genomes/C4-CHM13.fa test/Genomes/C4-HG002.1.fa test/Genomes/C4-HG002.2.fa > C4-CHM13.gfa
 ```
 
-## <a name="bench"></a>Benchmark
+## <a name="bench"></a>Benchmarks
 
 ### v1.3
 
