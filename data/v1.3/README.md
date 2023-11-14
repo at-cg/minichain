@@ -5,7 +5,7 @@ We assume that [conda](https://docs.conda.io/en/latest/) is installed and availa
 chmod +x Reproduce.py
 ./Reproduce.py -t4
 ```
-Here `-t4` represents the thread count. The memory required is about `15` GB per thread. We recommend  setting the maximum thread count based on the hardware.
+Here `-t4` represents the thread count. The memory required is about `15` GB per thread. We recommend  setting the maximum thread count based on your hardware.
 
 ## Benchmarking methodolody
 
