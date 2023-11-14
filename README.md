@@ -127,7 +127,7 @@ We compared Minichain (v1.2) with existing sequence to graph aligners to demonst
 We plan to continue adding features in future releases.
 
 * Support for graphs with SNPs and indels.
-* Haplotype-aware graphs constructed using fragmented assemblies.
+* Support for haplotype-aware graphs constructed using fragmented assemblies.
 * Support for haplotype-aware extention (base-to-base alignment).
 * Support for cyclic pangenome graphs.
 
