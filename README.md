@@ -11,14 +11,14 @@ git clone https://github.com/at-cg/minichain
 cd minichain && make
 ```
 
-### Haplotype-aware alignment of sequence to a pangenome graph ([GFA v1.1](http://gfa-spec.github.io/GFA-spec/GFA1.html#gfa-11))
+### Haplotype-aware alignment of a sequence to a pangenome graph ([GFA v1.1](http://gfa-spec.github.io/GFA-spec/GFA1.html#gfa-11))
 For this use-case, the pangenome graph should be constructed using phased assemblies. The reference haplotypes should be stored as paths in the GFA file.
 ```bash
 # Map sequence to haplotype-aware pangenome graph with recombination penalty(R) 10000
 ./minichain -cx lr test/Graphs/C4-CHM13.gfa test/Genomes/C4-HG03492.2.fa -R10000 > C4-HG03492.2.gaf
 ```
 
-### Aligning sequence to pangenome graph ([rGFA](https://github.com/lh3/gfatools/blob/master/doc/rGFA.md#the-reference-gfa-rgfa-format)/[GFA v1.0](http://gfa-spec.github.io/GFA-spec/GFA1.html))
+### Alignment of a sequence to a pangenome graph ([rGFA](https://github.com/lh3/gfatools/blob/master/doc/rGFA.md#the-reference-gfa-rgfa-format)/[GFA v1.0](http://gfa-spec.github.io/GFA-spec/GFA1.html))
 If the graph does not specify haplotype paths, Minichain uses haplotype-agnostic chaining algorithm.
 ```bash
 # Map sequence to pangenome graph
