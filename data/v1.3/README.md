@@ -11,7 +11,7 @@ Here `-t4` represents the thread count. The memory required is about `15` GB per
 
 **Step 1:** Data preparation
 - Download 61 major histocompatibility complex (MHC) sequences from the Human Pangenome Reference Consortium (HPRC). These are available on [Zenodo](https://zenodo.org/records/6617246).
-- We use the MHC sequence from CHM13 T2T assembly as the reference during graph construction. We exclude the MHC sequence from GRCh38.
+- We use the MHC sequence from CHM13 T2T assembly as the reference during graph construction. We do not use the MHC sequence from GRCh38.
 - Using 60 haplotypes, we build a pangenome graph by augmenting structural variations (SVs) with [Minigraph](https://github.com/lh3/minigraph).
 - Subsequently, we align each haplotype back to the pangenome graph with [Minigraph](https://github.com/lh3/minigraph) using `-cx asm` flag. We use these alignments to store haplotype paths in the GFA file.
 
