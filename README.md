@@ -12,7 +12,7 @@ cd minichain && make
 ```
 
 ### Haplotype-aware alignment of a sequence to a pangenome graph ([GFA v1.1](http://gfa-spec.github.io/GFA-spec/GFA1.html#gfa-11))
-For this use-case, the pangenome graph should be constructed using phased assemblies. The reference haplotypes should be stored as paths in the GFA file.
+For this use-case, the reference haplotypes must be stored as paths in the input GFA file.
 ```bash
 # Map sequence to haplotype-aware pangenome graph with recombination penalty(R) 10000
 ./minichain -cx lr test/Graphs/C4-CHM13.gfa test/Genomes/C4-HG03492.2.fa -R10000 > C4-HG03492.2.gaf
