@@ -128,7 +128,7 @@ We plan to continue adding features in future releases.
 
 * Support for graphs with SNPs and indels.
 * Support for haplotype-aware graphs constructed using fragmented assemblies.
-* Support for haplotype-aware extention (base-to-base alignment).
+* Support for haplotype-aware extension (base-to-base alignment).
 * Support for cyclic pangenome graphs.
 
 <!--- * Support for chromosome-long query sequences. This is needed for [incremental pangenome graph construction (https://github.com/lh3/minigraph/blob/master/doc/example1.png). -->
