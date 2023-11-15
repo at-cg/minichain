@@ -2,10 +2,11 @@
 We assume that [conda](https://docs.conda.io/en/latest/) is installed and available in your path. To confirm, please run `which conda` 
 ## To reproduce the results, execute the following commands:
 ```bash
+# Inside minichain/data/v1.3 folder
 chmod +x Reproduce.py
-./Reproduce.py -t4
+./Reproduce.py -t8
 ```
-Here `-t4` represents the thread count. The memory required is about `15` GB per thread. We recommend  setting the maximum thread count based on your hardware.
+Here `-t8` represents the thread count. The memory required is about `15` GB per thread. We recommend  setting the maximum thread count based on your hardware.
 
 ## Benchmarking methodolody
 
