@@ -135,7 +135,7 @@ We plan to continue adding features in future releases.
 
 ## <a name="pub"></a> Publications
 
-- **Ghanshyam Chandra and Chirag Jain**. "Haplotype-aware Sequence-to-Graph Alignment". *(under review)*.
+- **Ghanshyam Chandra and Chirag Jain**. "[Haplotype-aware Sequence-to-Graph Alignment](https://www.biorxiv.org/content/10.1101/2023.11.15.566493v1)". *bioRxiv* 2023.
 - **Ghanshyam Chandra and Chirag Jain**. "[Sequence to Graph Alignment Using Gap-Sensitive Co-linear Chaining](https://doi.org/10.1101/2022.08.29.505691)". *RECOMB* 2023.
 
 [minigraph]: https://github.com/lh3/minigraph
