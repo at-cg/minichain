@@ -33,7 +33,7 @@ If the graph does not specify haplotype paths, Minichain uses haplotype-agnostic
   - [Installation](#install)
   - [Read mapping](#map)
   - [Graph generation](#ggen)
-- [Benchmark](#benchmark)
+- [Benchmark](#bench)
 - [Future work](#future_work)
 - [Publications](#pub)
 
