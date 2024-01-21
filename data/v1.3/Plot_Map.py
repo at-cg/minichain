@@ -59,7 +59,7 @@ for read in Reads:
 
     # save table to pdf file
     console.save_svg("Mapped_Reads/" + read + "_table.svg", title = "Effect of Haplotype-aware Chaining")
-    with open('my_tree.txt', 'a') as f:
+    with open('Map_stats_table.txt', 'a') as f:
         rprint(table, file=f)
 
     val_1 = []
