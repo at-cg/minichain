@@ -145,6 +145,10 @@ class graphUtils
         std::vector<int> ref_query;
         float accuracy = 0.0f;
         int num_walks = 0;
+        bool benchmark;
+        int32_t count_correct = 0;
+        int32_t count_not_correct = 0;
+        float frac_correct = 0.0f;
 
         graphUtils(gfa_t *g);	// This is constructor
 

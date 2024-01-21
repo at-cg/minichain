@@ -388,4 +388,7 @@ for h, haplotypes in fasta_gfa_2:
     print("Walks for " + graph + " generated successfully")
     print("--- Time : %s seconds ---" % (time.time() - start_time))
 
+# compress all gfa files
+os.system("cd Graphs && gzip *.gfa")
+
 print("--- Total Graph Generation Time : %s seconds ---" % (time.time() - start_time_))

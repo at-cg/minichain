@@ -122,7 +122,7 @@ void radix_sort_128x(mg128_t *beg, mg128_t *end);
 void radix_sort_gfa64(uint64_t *beg, uint64_t *end);
 uint32_t ks_ksmall_uint32_t(size_t n, uint32_t arr[], size_t kk);
 
-void pass_par(bool &param_z, int32_t &scale_factor, char* &graph_name, int &G, int32_t &recomb);
+void pass_par(bool &param_z, int32_t &scale_factor, char* &graph_name, int &G, int32_t &recomb, bool &benchmark);
 struct params
 {
 	int32_t scale_factor;
@@ -130,10 +130,11 @@ struct params
 	char* graph_name;
 	int G;
 	int32_t recomb;
+	bool benchmark;
 };
 
 
-void get_vars(int &min, int &max, int &max_sum, int &count, float &accuracy, std::string &hap_seqs);
+void get_vars(int &min, int &max, int &max_sum, int &count, float &accuracy, std::string &hap_seqs, int32_t &count_correct, int32_t &count_not_correct, float &frac_correct);
 
 #ifdef __cplusplus
 }

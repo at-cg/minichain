@@ -82,15 +82,19 @@ os.system("rm Genomes/MHC-00GRCh38.fa")
 
 # create conda environment named MC and install python packages numpy, scipy, matplotlib and networkx Biopython getopt seaborn pandas
 # check if conda environment named MC exists or not
-os.system("source ~/.bashrc && conda create --force -n MC -y && conda activate MC && conda install -c conda-forge -y numpy scipy matplotlib networkx biopython seaborn pandas")
+os.system("source ~/.bashrc && conda create --force -n MC -y && conda activate MC && conda install -c conda-forge -y numpy scipy matplotlib networkx biopython seaborn pandas rich pylatexenc")
 
-
+map_threads = 6
 # Generate the graph
 os.system("python3 Gen_Graph.py -t " + str(threads))
 # Simulate queries
 os.system("source ~/.bashrc && conda activate MC && python3 Simulate_query.py -t " + str(threads))
 # Map the queries
 os.system("source ~/.bashrc && conda activate MC && python3 Map_Graph.py -t " + str(threads))
+# Map the reads
+os.system("source ~/.bashrc && conda activate MC && python3 Map_Reads.py -t " + str(map_threads))
 # Plot the results
 os.system("source ~/.bashrc && conda activate MC && python3 Plot.py")
+# Plot the results for mapping
+os.system("source ~/.bashrc && conda activate MC && python3 Plot_Map.py")
 

@@ -886,6 +886,10 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
 
     if (is_hprc_gfa)
     {
+        if (benchmark) tau_1 = 0.99999f;
+        // chain vtxs
+        std::vector<std::vector<std::vector<int32_t>>> chains(num_cid);
+
         // Recombinations count
         std::vector<int> min_loc(num_cid, std::numeric_limits<int>::max()), max_loc(num_cid, std::numeric_limits<int>::min());
         count++; // Read count
@@ -894,6 +898,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
         std::vector<float> acc_cid;
         acc_cid.resize(num_cid);
         
+
+        bool is_haplotype = false;
         for (int cid = 0; cid < num_cid; cid++)
         {
             int N = M[cid].size(); // #Anchors
@@ -1200,6 +1206,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                         }
                     }
 
+                    if (benchmark) chains[cid].push_back(temp_chain); // push anchor to chains
+
                     // Store the anchors if chain is disjoint and clear the keys
                     if (flag == true && temp_chain.size() > 0 ) // minimap2 min_cnt
                     {
@@ -1236,6 +1244,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                         // exit(0);
                         if (qname_.size() == 3)
                         {
+                            is_haplotype = true;
                             float precision = 0.0f;
                             float recall = 0.0f;
                             float f1_score = 0.0f;
@@ -1583,6 +1592,62 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
         max = std::max(max, min_loc[max_f1_cid_]);
         min = std::min(min, min_loc[max_f1_cid_]);
         max_sum += max;
+
+        if (benchmark && !is_haplotype)
+        {
+            accuracy = -1.0f;
+            max_f1_cid_ = 0;
+            int64_t max_score = std::numeric_limits<int64_t>::min();
+            for (int cid = 0; cid < num_cid; cid++)
+            {
+                if (max_score < best_chains[cid].second)
+                {
+                    max_score = best_chains[cid].second;
+                    max_f1_cid_ = cid;
+                }
+            }
+            // find count correct over all cids
+            std::set<int32_t> walk_vtx;
+            for (auto walk:fwd_walk_map[walk_map[0]])
+            {
+                walk_vtx.insert(walk);
+            }
+
+            for (auto walk:rev_walk_map[walk_map[0]])
+            {
+                walk_vtx.insert(walk);
+            }
+
+            int32_t loc_correct = 0;
+            int32_t loc_not_correct = 0;
+            float frac_correct_loc = 0.0f;
+            std::set<int32_t> chain_vtx;
+            for (auto chain_num:chains[max_f1_cid_]) // If any chain is part of CHM13#0 then do count_correct++
+            {
+                for (auto idx:chain_num)
+                {
+                    chain_vtx.insert(idx_Anchor[max_f1_cid_][idx].x>>32);
+                }
+
+                // find the intersection of chain_vtx and walk_vtx
+                std::vector<int32_t> common_vtx;
+                // do set_minus
+                std::set_difference(chain_vtx.begin(), chain_vtx.end(), walk_vtx.begin(), walk_vtx.end(), std::inserter(common_vtx, common_vtx.begin()));
+                // If the intersection is empty then do count_correct++;
+                float frac_correct_ = ((float)chain_vtx.size() - (float)common_vtx.size())/(float)chain_vtx.size();
+                if (common_vtx.size() == 0)
+                {
+                    loc_correct = 1;
+                }else
+                {
+                    frac_correct_loc = frac_correct_;
+                    loc_not_correct = 1;
+                }
+            }
+            count_correct += loc_correct;
+            count_not_correct += loc_not_correct;
+            frac_correct += frac_correct_loc;
+        }
         
     } else {
         for (int cid = 0; cid < num_cid; cid++)

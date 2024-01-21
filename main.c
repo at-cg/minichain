@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
 
 	// pass_par(z, G);
 	// minichain
-	pass_par(z, scale_factor, argv[o.ind], G, recomb);
+	pass_par(z, scale_factor, argv[o.ind], G, recomb, benchmark);
 
 	g = gfa_read(argv[o.ind]);
 	if (g == 0) {
@@ -313,20 +313,35 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	int min, max, max_sum, count;
-	float accuracy;
+	int min, max, max_sum, count, count_correct, count_not_correct;
+	float accuracy, frac_correct;
 	std::string haps;
-	get_vars(min, max, max_sum, count, accuracy, haps);
+	get_vars(min, max, max_sum, count, accuracy, haps, count_correct, count_not_correct, frac_correct);
 	float mean = (float)max_sum / (float)count;
 
+	// print count of correct and not correct recombination events
+	// std::cerr << " count_correct : " << count_correct << " count_not_correct : " << count_not_correct << " count : " << count << std::endl;
+	// assert(count_correct + count_not_correct == count);
+
+
+	float corr = (float)count_correct / (float)count;
+	float incorr = (1.0f - corr);
+	float incorr_corr = ((float)frac_correct / (float)count_not_correct) * incorr;
+	float incorr_incorr = incorr - incorr_corr;
+
+	// std::cerr << " accuracy: " << accuracy << " Benchmark: " << benchmark << std::endl;
+
 	if (mg_verbose >= 3) {
-		if (benchmark)
+		if (benchmark && (accuracy == -1.0f))
+		{
+			{fprintf(stderr, "[M::%s] R: %f, NR_R: %f, NR_NR: %f\n", __func__, corr, incorr_corr, incorr_incorr);};
+		} else if (benchmark)
 		{
 			if (min != INT_MAX) {fprintf(stderr, "[M::%s] Recombinations [Min: %d, Max: %d, Mean: %f, Accuracy: %f]\n", __func__, min, max, mean, accuracy);};
 			if (min != INT_MAX) {fprintf(stderr, "[M::%s] Haplotype paths: %s\n", __func__, haps.c_str());};
 		}else
 		{
-			if (min != INT_MAX){fprintf(stderr, "[M::%s] Recombinations [Min: %d, Max: %d, Mean: %f]\n", __func__, min, max, mean);};	
+			if (min != INT_MAX) {fprintf(stderr, "[M::%s] Recombinations [Min: %d, Max: %d, Mean: %f]\n", __func__, min, max, mean);};	
 		}
 		fprintf(stderr, "[M::%s] Version: %s\n", __func__, MC_VERSION);
 		fprintf(stderr, "[M::%s] CMD:", __func__);
