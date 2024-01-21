@@ -59,6 +59,8 @@ for read in Reads:
 
     # save table to pdf file
     console.save_svg("Mapped_Reads/" + read + "_table.svg", title = "Effect of Haplotype-aware Chaining")
+    with open('my_tree.txt', 'a') as f:
+        rprint(table, file=f)
 
     val_1 = []
     val_2 = []
@@ -67,21 +69,21 @@ for read in Reads:
         val_1.append(NR_NR[read][i] + NR_R[read][i] + R_[read][i])
         val_2.append(R_[read][i] + NR_R[read][i])
         val_3.append(R_[read][i])
-    ax.bar(x, val_1, label='No Support', zorder = 3)
-    ax.bar(x, val_2, label='Partial Support', zorder = 3)
-    ax.bar(x, val_3, label='Complete Support', zorder = 3)
+    ax.bar(x, val_1, label='No support', zorder = 3)
+    ax.bar(x, val_2, label='Partial support', zorder = 3)
+    ax.bar(x, val_3, label='Complete support', zorder = 3)
 
-    ax.tick_params(axis='both', which='major', labelsize=11)
-    ax.tick_params(axis='both', which='minor', labelsize=11)
-    ax.set_ylabel('Chains supported by reads', fontsize=12)
+    ax.tick_params(axis='both', which='major', labelsize=14)
+    ax.tick_params(axis='both', which='minor', labelsize=14)
+    ax.set_ylabel('Chains supported by reads', fontsize=15)
     # ax.set_title(read + ' reads')
     ax.set_xticks(x)
     ax.set_xticklabels(R_labels, rotation=45)
-    ax.set_xlabel('Recombination penalty', fontsize=12)
+    ax.set_xlabel('Recombination penalty', fontsize=15)
     plt.grid(True)
     # ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
     # put legend on the top of the plot
-    ax.legend(bbox_to_anchor=(0.5, 1.2), loc='upper center', borderaxespad=0., ncol=3)
+    ax.legend(bbox_to_anchor=(0.5, 1.2), loc='upper center', borderaxespad=0., ncol=3, fontsize=14)
     # reverse the legend order
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], labels[::-1], bbox_to_anchor=(0.5, 1.2), loc='upper center', borderaxespad=0., ncol=3)
