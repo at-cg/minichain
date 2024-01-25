@@ -334,7 +334,8 @@ int main(int argc, char *argv[])
 	if (mg_verbose >= 3) {
 		if (benchmark && (accuracy == -1.0f))
 		{
-			{fprintf(stderr, "[M::%s] R: %f, NR_R: %f, NR_NR: %f\n", __func__, corr, incorr_corr, incorr_incorr);};
+			// {fprintf(stderr, "[M::%s] R: %f, NR_R: %f, NR_NR: %f\n", __func__, corr, incorr_corr, incorr_incorr);};
+			{fprintf(stderr, "[M::%s] R: %f\n", __func__, corr);};
 		} else if (benchmark)
 		{
 			if (min != INT_MAX) {fprintf(stderr, "[M::%s] Recombinations [Min: %d, Max: %d, Mean: %f, Accuracy: %f]\n", __func__, min, max, mean, accuracy);};

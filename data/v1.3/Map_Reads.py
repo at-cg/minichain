@@ -43,7 +43,10 @@ R = ['0', '1000', '10000', '100000', '1000000', '2000000000']
 
 Metadata = []
 for read in Reads:
-    Read = 'Reads/MHC_CHM13_' + read + '_filt.fq.gz'
+    if read == 'PacBio':
+        Read = 'Reads/MHC_CHM13_' + read + '_filt.fq.gz'
+    elif read == 'ONT':
+        Read = 'Reads/MHC_CHM13_' + read + '_filt.part_001.fq.gz ' + ' Reads/MHC_CHM13_' + read + '_filt.part_002.fq.gz'
     for r in R:
         Metadata.append([read, r, Read])
 
@@ -63,14 +66,20 @@ def Map_Reads(Metadata):
 
     print(out)
     # add 6th line from out to count_recomb
-    out = out.split('\n')
-    val = re.findall(r'R: (\d+.\d+)', out[5])
-    R, NR_R, NR_NR = val[0], val[1], val[2]
+    R = ""
+    if read == 'PacBio':
+        out = out.split('\n')
+        val = re.findall(r'R: (\d+.\d+)', out[5])
+        R = val[0]
+    else:
+        out = out.split('\n')
+        val = re.findall(r'R: (\d+.\d+)', out[6])
+        R = val[0]
 
     # write to file
     with open('Mapped_Reads/' + read + '_' + r + '.txt', 'w') as f:
-        f.write('Read\tr\tR\tNR_R\tNR_NR\n')
-        f.write(read + '\t' + r + '\t' + R + '\t' + NR_R + '\t' + NR_NR + '\n')
+        f.write('Read\tr\tR\n')
+        f.write(read + '\t' + r + '\t' + R + '\n')
 
 time_start = time.time()
 # run in parallel
