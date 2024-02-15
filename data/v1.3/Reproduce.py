@@ -86,9 +86,30 @@ os.system("source ~/.bashrc && conda create --force -n MC -y && conda activate M
 
 map_threads = 6
 # Generate the graph
-os.system("python3 Gen_Graph.py -t " + str(threads))
+# os.system("python3 Gen_Graph.py -t " + str(threads))
 # Simulate queries
-os.system("source ~/.bashrc && conda activate MC && python3 Simulate_query.py -t " + str(threads))
+# os.system("source ~/.bashrc && conda activate MC && python3 Simulate_query.py -t " + str(threads))
+
+os.system("mkdir -p Graphs")
+os.system("mkdir -p Reads")
+os.system("curl https://zenodo.org/api/records/10665350/files-archive -o Data.zip")
+os.system("unzip Data.zip")
+os.system("mv *.gfa.gz Graphs/")
+os.system("mv *.fq.gz Reads/")
+os.system("rm -rf Query_0.1")
+os.system("rm -rf Query_1")
+os.system("rm -rf Query_5")
+os.system("tar -xvf Query_0.1.tar.gz")
+os.system("tar -xvf Query_1.tar.gz")
+os.system("tar -xvf Query_5.tar.gz")
+os.system("cd Query_0.1 && gunzip *")
+os.system("cd Query_1 && gunzip *")
+os.system("cd Query_5 && gunzip *")
+os.system("rm Query_0.1.tar.gz")
+os.system("rm Query_1.tar.gz")
+os.system("rm Query_5.tar.gz")
+os.system("echo $(pwd)")
+
 # Map the queries
 os.system("source ~/.bashrc && conda activate MC && python3 Map_Graph.py -t " + str(threads))
 # Map the reads
