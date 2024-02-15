@@ -110,6 +110,8 @@ count.
 
 > Box plots show the levels of consistency between the haplotype recombination pairs in Minichain’s output chain and the ground-truth. We used different substitution rates and recombination penalties. Median values are highlighted with light green lines.
 
+Datasets for benchmarking is available at [Zenodo](https://zenodo.org/records/10665350)
+
 ### v1.2 and earlier versions
 
 We compared Minichain (v1.2) with existing sequence to graph aligners to demonstrate scalability and accuracy gains. Our experiments used human pangenome DAGs built by using subsets of [94 high-quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) provided by the Human Pangenome Reference Consortium, and [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) provided by the Telomere-to-Telomere consortium. Using a simulated long read dataset with 0.5x coverage, and DAGs of three different sizes, we see superior read mapping precision ([as shown in the figure](#Plot)). For the largest DAG constructed from all 95 haplotypes, Minichain used 10 minutes and 25 GB RAM with 32 threads. The scripts to reproduce this benchmark are available [here](data/v1.0).
