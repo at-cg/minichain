@@ -37,16 +37,16 @@ total_threads = multiprocessing.cpu_count()
 map_threads = total_threads/par_threads
 map_threads = int(map_threads)
 
-Reads = ['PacBio', 'ONT']
+Reads = ['PacBio_I', 'PacBio_II', 'ONT']
 Graph = 'Graphs/MHC-CHM13.0.gfa.gz'
 R = ['0', '1000', '10000', '100000', '1000000', '2000000000']
 
 Metadata = []
 for read in Reads:
-    if read == 'PacBio':
-        Read = 'Reads/MHC_CHM13_' + read + '_filt.fq.gz'
-    elif read == 'ONT':
-        Read = 'Reads/MHC_CHM13_' + read + '_filt.part_001.fq.gz ' + ' Reads/MHC_CHM13_' + read + '_filt.part_002.fq.gz'
+    if read == 'PacBio_I':
+        Read = 'Reads/MHC_CHM13_' + read.split('_')[0] + '_filt.fq.gz'
+    else:
+        Read = 'Reads/MHC_CHM13_' + read.split('_')[0] + '_filt.part_001.fq.gz ' + ' Reads/MHC_CHM13_' + read.split('_')[0] + '_filt.part_002.fq.gz'
     for r in R:
         Metadata.append([read, r, Read])
 
@@ -67,7 +67,7 @@ def Map_Reads(Metadata):
     print(out)
     # add 6th line from out to count_recomb
     R = ""
-    if read == 'PacBio':
+    if read == 'PacBio_I':
         out = out.split('\n')
         val = re.findall(r'R: (\d+.\d+)', out[5])
         R = val[0]

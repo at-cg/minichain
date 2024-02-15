@@ -12,7 +12,7 @@ from rich.table import Table
 from pylatexenc.latex2text import LatexNodes2Text
 
 
-Reads = ['PacBio', 'ONT']
+Reads = ['PacBio_I', 'PacBio_II', 'ONT']
 R = ['0', '1000', '10000', '100000', '1000000', '2000000000']
 R_labels = ['$0$', '$10^3$', '$10^4$', '$10^5$', '$10^6$', '$\infty$']
 R_labels_ = [LatexNodes2Text().latex_to_text(r) for r in R_labels]
@@ -41,6 +41,12 @@ for read in Reads:
     fig.set_size_inches(6, 4)
     
     table = Table(title="Reads: " + read)
+    if read == 'PacBio_I':
+        table = Table(title="Reads: PacBio Sequel II (SRR11292121)")
+    elif read == 'PacBio_II':
+        table = Table(title="Reads: PacBio Sequel II (SRX5633451)")
+    elif read == 'ONT':
+        table = Table(title="Reads: Oxford Nanopore (SRR23365080)")
     table.add_column("Recombination Penalty", justify="right", style="cyan", no_wrap=True)
     table.add_column("Complete support", justify="right", style="blue", no_wrap=True)
     for i in range(len(R)):
