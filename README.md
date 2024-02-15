@@ -110,7 +110,7 @@ count.
 
 > Box plots show the levels of consistency between the haplotype recombination pairs in Minichain’s output chain and the ground-truth. We used different substitution rates and recombination penalties. Median values are highlighted with light green lines.
 
-Datasets for benchmarking is available at [Zenodo](https://zenodo.org/records/10665350)
+Datasets for benchmarking are available at [Zenodo](https://zenodo.org/records/10665350)
 
 ### v1.2 and earlier versions
 
