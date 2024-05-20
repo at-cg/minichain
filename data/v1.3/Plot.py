@@ -45,7 +45,9 @@ for m in mutation_rates:
                     count_recomb[r][align].append(float(field[5]))
                     count_recomb[r][align].append(float(field[6]))
                     count_recomb[r][align].append(int(field[7]))
-                    count_recomb[r][align].append(float(field[8].split('\n')[0]))
+                    count_recomb[r][align].append(float(field[8]))
+                    count_recomb[r][align].append(float(field[9]))
+                    count_recomb[r][align].append(float(field[10].split('\n')[0]))
 
     print("============================ Substitution rate : " + m + " ============================")
     print("=======================================================================================")
@@ -59,6 +61,8 @@ for m in mutation_rates:
     accuracy_data = []
     pearson_corr = []
     kendall_corr = []
+    precision_data = []
+    recall_data = []
 
     # Initialize x-tick labels
     xtick_labels = []
@@ -72,6 +76,8 @@ for m in mutation_rates:
         chain_data_ = []
         groud_truth_ = []
         accuracy_ = []
+        precision_ = []
+        recall_ = []
         mean_rec = 0.0
         mean_acc = 0.0
         count = 0
@@ -88,6 +94,8 @@ for m in mutation_rates:
             identity_.append(count_recomb[r][align][5])
             groud_truth_.append(count_recomb[r][align][6])
             accuracy_.append(count_recomb[r][align][7])
+            precision_.append(count_recomb[r][align][8])
+            recall_.append(count_recomb[r][align][9])
             mean_acc += count_recomb[r][align][7]
         chain_data.append(chain_data_)
         recomb_data.append(recomb_)
@@ -99,16 +107,16 @@ for m in mutation_rates:
         len_ = str(len(recomb_))
         if r == '2000000000':
             xtick_labels.append("$\infty$")
-            xtick_labels_.append("Recombination penalty = $\infty$")
+            xtick_labels_.append("$\\rho = \infty$")
         elif r == '0':
             xtick_labels.append("0")
-            xtick_labels_.append("Recombination penalty =  $0$")
+            xtick_labels_.append("$\\rho = 0$")
         elif r == '1000':
             xtick_labels.append("$10^3$")
             xtick_labels_.append("$\\rho = 10^3$")
         elif r == '10000':
             xtick_labels.append("$10^4$")
-            xtick_labels_.append("Recombination penalty = $10^4$")
+            xtick_labels_.append("$\\rho = 10^4$")
         elif r == '100000':
             xtick_labels.append("$10^5$")
             xtick_labels_.append("$\\rho = 10^5$")
@@ -236,3 +244,32 @@ for m in mutation_rates:
     plt.tight_layout()
     plt.savefig(folder + "/F1_Score_vs_R.pdf", bbox_inches='tight', dpi=1200, format='pdf')
     # plt.show()
+
+
+    fig11, ax11 = plt.subplots(figsize=(4, 3))
+    ax11.boxplot(precision_data, showfliers=False, showmeans=False, meanline=False, medianprops={'color':'lime', 'linewidth':2.2})
+    # add data points
+    for i in range(len(precision_data)):
+        y = precision_data[i]
+        x = np.random.normal(i + 1, 0.04, size=len(y))
+        ax11.plot(x, y, 'r.', alpha=0.3, markersize=10)
+    ax11.set_xticks(np.arange(1, len(R) + 1))
+    ax11.set_xticklabels(xtick_labels, rotation=45)
+    ax11.set_xlabel("Recombination penalty")
+    ax11.set_ylabel("Precision")
+    plt.tight_layout()
+    plt.savefig(folder + "/Precision_vs_R.pdf", bbox_inches='tight', dpi=1200, format='pdf')
+
+    fig12, ax12 = plt.subplots(figsize=(4, 3))
+    ax12.boxplot(recall_data, showfliers=False, showmeans=False, meanline=False, medianprops={'color':'lime', 'linewidth':2.2})
+    # add data points
+    for i in range(len(recall_data)):
+        y = recall_data[i]
+        x = np.random.normal(i + 1, 0.04, size=len(y))
+        ax12.plot(x, y, 'r.', alpha=0.3, markersize=10)
+    ax12.set_xticks(np.arange(1, len(R) + 1))
+    ax12.set_xticklabels(xtick_labels, rotation=45)
+    ax12.set_xlabel("Recombination penalty")
+    ax12.set_ylabel("Recall")
+    plt.tight_layout()
+    plt.savefig(folder + "/Recall_vs_R.pdf", bbox_inches='tight', dpi=1200, format='pdf')

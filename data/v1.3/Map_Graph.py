@@ -197,6 +197,8 @@ for m in mutation_rates:
         max_ = re.findall(r'\bMax: (\d+)\b', out[5])
         mean_ = re.findall(r'\bMean: (\d+)\b', out[5])
         accuracy_ = re.findall(r'\bAccuracy: (\d+\.\d+)\b', out[5])
+        precision_ = re.findall(r'\bprecision: (\d+\.\d+)\b', out[5])
+        recall_ = re.findall(r'\brecall: (\d+\.\d+)\b', out[5])
         recomb_ = 0
         frac_seq = 0.0
         identity = 0.0
@@ -213,8 +215,8 @@ for m in mutation_rates:
 
         # avoid thread collision
         with open(align_dir + "/R" + r + "_" + h.split('/')[1].split('.fa')[0] + ".txt", 'w') as f:
-            f.write("File\tMin\tMax\tMean\tRecomb\tFracSeq\tIdentity\tTrueRecomb\tAccuracy\n")
-            f.write(h.split('/')[1].split('.fa')[0]  + "\t" + str(min_[0]) + "\t" + str(max_[0]) + "\t" + str(mean_[0]) + "\t" + str(recomb_) + "\t" + str(frac_seq) + "\t" + str(identity) + "\t" + str(true_recomb_) + "\t" + str(accuracy_[0]) + "\n")
+            f.write("File\tMin\tMax\tMean\tRecomb\tFracSeq\tIdentity\tTrueRecomb\tAccuracy\tprecision\trecall\n")
+            f.write(h.split('/')[1].split('.fa')[0]  + "\t" + str(min_[0]) + "\t" + str(max_[0]) + "\t" + str(mean_[0]) + "\t" + str(recomb_) + "\t" + str(frac_seq) + "\t" + str(identity) + "\t" + str(true_recomb_) + "\t" + str(accuracy_[0]) + "\t" + str(precision_[0]) + "\t" + str(recall_[0]))
 
 
 
