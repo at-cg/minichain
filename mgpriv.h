@@ -134,7 +134,8 @@ struct params
 };
 
 
-void get_vars(int &min, int &max, int &max_sum, int &count, float &accuracy, std::string &hap_seqs, int32_t &count_correct, int32_t &count_not_correct, float &frac_correct);
+void get_vars(int &min, int &max, int &max_sum, int &count, float &accuracy, std::string &hap_seqs, int32_t &count_correct, \
+				int32_t &count_not_correct, float &frac_correct, float &precison, float &recall);
 
 #ifdef __cplusplus
 }

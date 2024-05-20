@@ -895,9 +895,9 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
         count++; // Read count
         std::vector<std::string> haps_seq_cid;
         haps_seq_cid.resize(num_cid);
-        std::vector<float> acc_cid;
-        acc_cid.resize(num_cid);
-        
+        std::vector<float> acc_cid(num_cid);
+        std::vector<float> precision_vec(num_cid);
+        std::vector<float> recall_vec(num_cid);
 
         bool is_haplotype = false;
         for (int cid = 0; cid < num_cid; cid++)
@@ -910,7 +910,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
             int sf = scale_factor;    
             if (N == 0) continue;
 
-            /* Initialise Search Trees */
             /* Initialise T */
             std::vector<Tuples> T; // Tuples of Anchors
             int cost = (M[cid][0].d - M[cid][0].c + 1) * scale_factor;
@@ -1023,7 +1022,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
             std::vector<std::pair<std::pair<int64_t, int>, std::pair<int, int>>> D(N, std::pair<std::pair<int64_t, int>, \ 
                         std::pair<int, int>>({std::numeric_limits<int>::min(), -1},{-1, -1})); // (score, index), index
 
-            // For dyanamic range tree
             // Initialize a pointer and a array.
             std::vector<int> x(K,0); // pointer for the path
             std::vector<int> rmq_coor(K,0); // current index of the anchor which lies outside the window of G
@@ -1039,7 +1037,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                 if (t.task == 0)
                 {
                     int64_t p = M[cid][i].x + dist2begin[cid][j][t.v] + M[cid][i].c + Distance[cid][j][w]- 2;
-                    // int range = dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w] + M[cid][t.anchor].x - G - 1;
                     if (index[cid][j][w] != -1) // j \in paths(M[cid][i].v)
                     {
                         // Query after anchor deletion
@@ -1159,9 +1156,10 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                 std::pair<std::pair<int64_t, int>, int> anchor_id;
 
                 if (param_z) std::cerr << "Backtracking started for cid : " << cid << "\n";
-
                 accuracy = -1.0f;
                 float sum_acc = 0.0f;
+                float precision_ = 0.0f;
+                float recall_ = 0.0f;
                 int count_acc = 0;
                 while (max_score >= threshold_score && count_anchors < N && max_score >  min_score)
                 {
@@ -1173,7 +1171,9 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                     int prev_hap = path;
                     int prev_i = idx;
                     std::vector<std::string> chained_haps;
-                    for (anchor_id = {{C[idx][path].s, idx}, path}; anchor_id.first.second != -1 && anchor_id.second != -1; anchor_id = {{C[anchor_id.first.second][anchor_id.second].s, C[anchor_id.first.second][anchor_id.second].i}, C[anchor_id.first.second][anchor_id.second].j}) // backtracking
+                    for (anchor_id = {{C[idx][path].s, idx}, path}; anchor_id.first.second != -1 && \
+                        anchor_id.second != -1; anchor_id = {{C[anchor_id.first.second][anchor_id.second].s, \
+                        C[anchor_id.first.second][anchor_id.second].i}, C[anchor_id.first.second][anchor_id.second].j}) // backtracking
                     {
                         flag = true; // chain is disjoint
                         count_anchors++; // count anchors
@@ -1245,8 +1245,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                         if (qname_.size() == 3)
                         {
                             is_haplotype = true;
-                            float precision = 0.0f;
-                            float recall = 0.0f;
                             float f1_score = 0.0f;
                             // Split the string into vector of strings by >
                             std::string delimiter2 = ">";
@@ -1265,7 +1263,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                             true_rec = true_haplotypes.size() - 1;
                             assert(true_rec == atoi(qname_[1].c_str()));
 
-                            if (recomb == 0)
+                            if (recomb == 0 || true)
                             {
                                 chained_haps.clear();
                                 std::vector<mg128_t> chained_anchors;
@@ -1274,7 +1272,22 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                                     chained_anchors.push_back(idx_Anchor[cid][idx]);
                                 }
                                 // reverse the chain
-                                // std::reverse(chained_anchors.begin(), chained_anchors.end());
+                                std::reverse(chained_anchors.begin(), chained_anchors.end());
+
+                                std::set<int32_t> set_chained_vtxs;
+                                std::vector<int32_t> chained_vtx;
+                                for (auto idx:chained_anchors)
+                                {
+                                    int32_t v = idx.x>>32;
+                                    set_chained_vtxs.insert(v);
+                                }
+                                // fill the chained_vtx
+                                for (auto v:set_chained_vtxs){ chained_vtx.push_back(v); }
+                                set_chained_vtxs.clear();
+
+                                // sort chained vtx by topological order
+                                std::sort(chained_vtx.begin(), chained_vtx.end(), [&](int32_t a, int32_t b) -> bool \
+                                        { return map_top_sort[cid][idx_component[cid][a]] < map_top_sort[cid][idx_component[cid][b]]; });
                                 
                                 // Do DP to find minimum recombination
                                 int min_recomb = std::numeric_limits<int>::max();
@@ -1282,26 +1295,26 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                                 // Inialize C as \inf
                                 for (auto hap:walk_ids)
                                 {
-                                    for (int i = 0; i < chained_anchors.size(); i++)
+                                    for (int i = 0; i < chained_vtx.size(); i++)
                                     {
                                         C_[hap].push_back({std::numeric_limits<int>::max(), {"-1", -1}});
                                     }
                                 }
 
                                 // Inialize C
-                                int node = (int)(chained_anchors[0].x >> 32);
+                                int node = chained_vtx[0];
                                 for (auto hap:haps[node])
                                 {
                                     C_[hap][0] = {0, {"-1", -1}};
                                 }
 
                                 // Do DP
-                                for (int i = 1; i < chained_anchors.size(); i++)
+                                for (int i = 1; i < chained_vtx.size(); i++)
                                 {
-                                    int node_1 = (int)(chained_anchors[i].x >> 32);
+                                    int node_1 = chained_vtx[i];
                                     for (auto hap:haps[node_1])
                                     {
-                                        int node_2 = (int)(chained_anchors[i - 1].x >> 32);
+                                        int node_2 = chained_vtx[i-1];
                                         for (auto hap2:haps[node_2])
                                         {
                                             if (hap == hap2)
@@ -1319,9 +1332,9 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                                 // Find the mimum recombination
                                 for (auto hap:walk_ids)
                                 {
-                                    if (min_dp_recomb > C_[hap][chained_anchors.size() - 1])
+                                    if (min_dp_recomb > C_[hap][chained_vtx.size() - 1])
                                     {
-                                        min_dp_recomb = C_[hap][chained_anchors.size() - 1];
+                                        min_dp_recomb = C_[hap][chained_vtx.size() - 1];
                                     }
                                 }
 
@@ -1455,28 +1468,14 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                                 }
                             }
 
-                            // // print true_hap_pair
-                            // for (auto hap_pair:true_hap_pair)
-                            // {
-                            //     std::cerr << "True Hap Pair : " << hap_pair.first << " " << hap_pair.second << "\n";
-                            // }
 
-                            // // print chain_hap_pair
-                            // for (auto hap_pair:chain_hap_pair)
-                            // {
-                            //     std::cerr << "Chain Hap Pair : " << hap_pair.first << " " << hap_pair.second << "\n";
-                            // }
-
-
-                            precision = (float)true_pos/(float)(true_pos + false_pos);
-                            recall = (float)true_pos/(float)(true_pos + false_neg);
-                            // std::cerr << "Precision : " << precision << "\n";
-                            // std::cerr << "Recall : " << recall << "\n";
+                            precision_ = (float)true_pos/(float)(true_pos + false_pos);
+                            recall_ = (float)true_pos/(float)(true_pos + false_neg);
 
                             // compute F1 
                             float loc_acc = 0.0f;
-                            f1_score = 2.0f * ((precision * recall)/(precision + recall));
-                            if (precision != 0.0f && recall != 0.0f)
+                            f1_score = 2.0f * ((precision_ * recall_)/(precision_ + recall_));
+                            if (precision_ != 0.0f && recall_ != 0.0f)
                             {
                                 sum_acc = f1_score;
                                 loc_acc = f1_score;
@@ -1486,15 +1485,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                                 loc_acc = 0.0f;
                             }
                             count_acc++;
-                            
-                            // std::cerr << "f1_score: " << f1_score << std::endl;
-                            // if (precision != 0.0f && recall != 0.0f) {
-                            //     accuracy = f1_score;
-                            //     std::cerr << "Accuracy updated to: " << accuracy << std::endl;
-                            // } else {
-                            //     accuracy = 0.0f;
-                            //     std::cerr << "Accuracy updated to: " << accuracy << std::endl;
-                            // }
 
                             // add chained_haps to hap_seqs with S and E and > sign 
                             haps_seq_cid[cid] += ">S";
@@ -1522,18 +1512,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                         }
                     }
 
-                    // // count recombinations
-                    // if (recombination != -1)
-                    // {
-                    //     if (loc_max < recombination)
-                    //     {
-                    //         loc_max = recombination;
-                    //         loc_min = recombination;
-                    //     }
-                    // }
-
-                    // Compute max score of C again considering the visited anchors
-                    // if(param_z) std::cerr << " Second pass for max_score computation started ... " << std::endl;
                     max_score = std::numeric_limits<int>::min(); //{{std::numeric_limits<int>::min(), -1}, -1};
                     for (int i = prev_idx; i < D.size(); i++) // O(N) time maximum score search
                     {
@@ -1546,22 +1524,13 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
                             break;
                         }
                     }
-
-                    // // For each chain add min/max recombination
-                    // if (loc_max > 0)
-                    // {
-                    //     max_loc[cid] += loc_max;
-                    //     min_loc[cid] += loc_min;
-                    // }
-                    
                     if(param_z) std::cerr << " Second pass for max_score computation finished ... " << std::endl;
-                    
                 }
 
 
                 acc_cid[cid] = sum_acc/(float)count_acc;
-                
-                
+                precision_vec[cid] = precision_;
+                recall_vec[cid] = recall_;
                 
                 for (int i = 0; i < chain.size(); i++)
                 {
@@ -1578,6 +1547,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
             }
         }
         int max_f1_cid_ = 0;
+        float max_precision = 0.0f;
+        float max_recall = 0.0f;
         float max_f1 = std::numeric_limits<float>::min();
         for (int cid = 0; cid < num_cid; cid++)
         {
@@ -1588,6 +1559,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
             }
         }
         accuracy = max_f1;
+        precision = precision_vec[max_f1_cid_];
+        recall = recall_vec[max_f1_cid_];
         hap_seqs = haps_seq_cid[max_f1_cid_];
         max = std::max(max, min_loc[max_f1_cid_]);
         min = std::min(min, min_loc[max_f1_cid_]);
@@ -1943,7 +1916,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors, std::str
         if(!is_hprc_gfa && !is_hap)
         {
             for (int i = 0; i < best.size(); i++) {
-                int node = (int)(best[i].x >> 32);
+                int node = best[i].x >> 32;
                 if (count[node] <= 5) {
                     red_idx.push_back(i);
                 }

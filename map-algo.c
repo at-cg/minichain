@@ -15,7 +15,8 @@ void get_Op(graphUtils *graph_Op)
 	graphOp = graph_Op;
 }
 
-void get_vars(int &min, int &max, int &max_sum, int &count, float &accuracy, std::string &hap_seqs, int32_t &count_correct, int32_t &count_not_correct, float &frac_correct){
+void get_vars(int &min, int &max, int &max_sum, int &count, float &accuracy, std::string &hap_seqs, int32_t &count_correct, \
+				int32_t &count_not_correct, float &frac_correct, float &precision, float &recall){
 	min = graphOp->min;
 	max = graphOp->max;
 	max_sum = graphOp->max_sum;
@@ -25,6 +26,8 @@ void get_vars(int &min, int &max, int &max_sum, int &count, float &accuracy, std
 	count_correct = graphOp->count_correct;
 	count_not_correct = graphOp->count_not_correct;
 	frac_correct = graphOp->frac_correct;
+	precision = graphOp->precision;
+	recall = graphOp->recall;
 }
 
 struct mg_tbuf_s {

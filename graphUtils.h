@@ -124,6 +124,7 @@ class graphUtils
         float div;
         int max_itr;
         std::string hap_seqs;
+        float precision = 0.0f, recall = 0.0f;
 
         // for recombinations count
         int min = std::numeric_limits<int>::max(), max = std::numeric_limits<int>::min(), max_sum = 0, count = 0;
